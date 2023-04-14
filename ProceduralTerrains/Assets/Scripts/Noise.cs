@@ -76,7 +76,8 @@ public static class Noise
                 }
                 else
                 {
-                    float normalizedHeight = (noiseMap[x, y] + 1) / (2f * maxPossibleHeight / 1.5f);
+                    //noiseMap[x, y] = Mathf.InverseLerp(0, maxPossibleHeight / 2, noiseMap[x, y]);
+                    float normalizedHeight = (noiseMap[x, y] + 1) / 2f * maxPossibleHeight / 1.25f;
                     noiseMap[x, y] = normalizedHeight;
                 }
             }

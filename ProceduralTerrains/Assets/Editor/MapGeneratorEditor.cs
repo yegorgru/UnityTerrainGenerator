@@ -14,11 +14,13 @@ public class MapGeneratorEditor : Editor
             if (mapGen.autoUpdate)
             {
                 mapGen.DrawMapInEditor();
+                mapGen.setUpdateEndlessTerrain(true);
             }
         }
         if (GUILayout.Button("Generate"))
         {
             mapGen.DrawMapInEditor();
+            mapGen.setUpdateEndlessTerrain(true);
         }
     }
 }
