@@ -13,24 +13,12 @@ public class MapGenerator : MonoBehaviour
         Mesh
     };
 
+    public TerrainData terrainData;
+    public NoiseData noiseData;
+
     public DrawMode drawMode;
-    public Noise.NormalizeMode normalizeMode;
 
     public const int mapChunkSize = 241;
-    [Range(0, 6)]
-    public int editorPreviewLOD;
-    public float noiseScale;
-
-    public int numberOctaves;
-    [Range(0f, 1f)]
-    public float persistance;
-    public float lacunarity;
-
-    public int seed;
-    public Vector2 offset;
-
-    public float meshHeightMultiplier;
-    public AnimationCurve meshHeightCurve;
 
     public bool autoUpdate;
 
@@ -55,8 +43,9 @@ public class MapGenerator : MonoBehaviour
         }
         else if (drawMode == DrawMode.Mesh)
         {
+            Debug.Log("Draw mesh");
             display.DrawMesh(
-                MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve),
+                MeshGenerator.GenerateTerrainMesh(mapData.heightMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve),
                 TextureGenerator.TextureFromColourMap(mapData.colorMap, mapChunkSize, mapChunkSize)
             );
         }
@@ -108,7 +97,7 @@ public class MapGenerator : MonoBehaviour
 
     private void MeshDataThread(MapData mapData, Action<MeshData> callback)
     {
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve);
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.heightMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve);
         lock (meshDataThreadInfoQueue)
         {
             meshDataThreadInfoQueue.Enqueue(new MapThreadInfo<MeshData>(callback, meshData));
@@ -137,7 +126,7 @@ public class MapGenerator : MonoBehaviour
 
     private MapData GenerateMapData(Vector2 center)
     {
-        float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, numberOctaves, persistance, lacunarity, center + offset, normalizeMode);
+        float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode);
 
         Color[] colourMap = new Color[mapChunkSize * mapChunkSize];
         for (int y = 0; y < mapChunkSize; y++)
@@ -157,18 +146,6 @@ public class MapGenerator : MonoBehaviour
         }
 
         return new MapData(noiseMap, colourMap);
-    }
-
-    private void OnValidate()
-    {
-        if(lacunarity < 1)
-        {
-            lacunarity = 1;
-        }
-        if(numberOctaves < 0)
-        {
-            numberOctaves = 0;
-        }
     }
 
     private struct MapThreadInfo<T>

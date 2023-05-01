@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 public class EndlessTerrain : MonoBehaviour
 {
-    const float scale = 5f;
-
     const float viewerMoveThresoldForChunkUpdate = 25f;
     const float sqrViewerMoveThresoldForChunkUpdate = viewerMoveThresoldForChunkUpdate * viewerMoveThresoldForChunkUpdate;
 
@@ -37,7 +35,7 @@ public class EndlessTerrain : MonoBehaviour
     private void Update()
     {
         var position = viewer.position;
-        viewerPosition = new Vector2(position.x, position.z) / scale;
+        viewerPosition = new Vector2(position.x, position.z) / mapGenerator.terrainData.uniformScale;
         if(mapGenerator.updateEndlessTerrain())
         {
             Regenerate();
@@ -93,6 +91,7 @@ public class EndlessTerrain : MonoBehaviour
 
         MeshRenderer meshRenderer;
         MeshFilter meshFilter;
+        MeshCollider meshCollider;
 
         MapData mapData;
         bool mapDataReceived;
@@ -104,16 +103,17 @@ public class EndlessTerrain : MonoBehaviour
         {
             position = coord * size;
             bounds = new Bounds(position, Vector2.one * size);
-            Vector3 position3 = new Vector3(position.x, 0, position.y) * scale;
+            Vector3 position3 = new Vector3(position.x, 0, position.y) * mapGenerator.terrainData.uniformScale;
 
             meshObject = new GameObject("Terrain Chunk");
             meshRenderer = meshObject.AddComponent<MeshRenderer>();
             meshFilter = meshObject.AddComponent<MeshFilter>();
+            meshCollider = meshObject.AddComponent<MeshCollider>();
             meshObject.transform.position = position3;
             meshRenderer.material = material;
 
             meshObject.transform.parent = parent;
-            meshObject.transform.localScale = Vector3.one * scale;
+            meshObject.transform.localScale = Vector3.one * mapGenerator.terrainData.uniformScale;
             SetVisible(false);
 
             mapGenerator.RequestMapData(position, OnMapDataReceived);
@@ -165,6 +165,7 @@ public class EndlessTerrain : MonoBehaviour
         private void OnMeshDataReceived(MeshData meshData)
         {
             meshFilter.mesh = meshData.CreateMesh();
+            meshCollider.sharedMesh = meshFilter.mesh;
             hasMesh = true;
         }
 
