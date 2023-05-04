@@ -14,13 +14,17 @@ public class MapGeneratorEditor : Editor
             if (mapGen.autoUpdate)
             {
                 mapGen.DrawMapInEditor();
-                mapGen.setUpdateEndlessTerrain(true);
             }
         }
         if (GUILayout.Button("Generate"))
         {
+            mapGen.terrainChunkDictionary.Clear();
             mapGen.DrawMapInEditor();
-            mapGen.setUpdateEndlessTerrain(true);
+        }
+        if (GUILayout.Button("Add item"))
+        {
+            TileWindow window = TileWindow.CreateTileWindow(mapGen);
+            window.Show();
         }
     }
 }
