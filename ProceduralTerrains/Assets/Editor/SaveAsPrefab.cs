@@ -10,10 +10,7 @@ public class SaveAsPrefab : MonoBehaviour
 
         // Create a new empty prefab asset
         string prefabPath = "Assets/NewPrefab.prefab";
-        Object prefab = PrefabUtility.SaveAsPrefabAsset(selectedGameObject, prefabPath);
-
-        // Destroy the selected game object, since it is now stored as a prefab asset
-        // DestroyImmediate(selectedGameObject);
+        PrefabUtility.SaveAsPrefabAssetAndConnect(selectedGameObject, prefabPath, InteractionMode.UserAction);
 
         // Load the new prefab asset
         AssetDatabase.Refresh();

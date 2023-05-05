@@ -43,7 +43,8 @@ public class TerrainChunk
         meshRenderer.material = material;
 
         MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.heightMap, mapGenerator.terrainData.meshHeightMultiplier, mapGenerator.terrainData.meshHeightCurve);
-        meshFilter.sharedMesh = meshData.CreateMesh();
-        meshCollider.sharedMesh = meshFilter.sharedMesh;
+        Mesh mesh = meshData.CreateMesh();
+        meshFilter.sharedMesh = mesh;
+        meshCollider.sharedMesh = mesh;
     }
 }
