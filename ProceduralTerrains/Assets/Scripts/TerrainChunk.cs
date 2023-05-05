@@ -19,7 +19,7 @@ public class TerrainChunk
         this.mapGenerator = mapGenerator;
 
         position = coord * size;
-        Vector3 position3 = new Vector3(position.x, 0, position.y) * mapGenerator.terrainData.uniformScale;
+        Vector3 position3 = new Vector3(position.x, 0, position.y) * mapGenerator.terrainData.uniformScale + new Vector3(mapGenerator.transform.position.x, 0, mapGenerator.transform.position.z);
 
         meshObject = new GameObject("Terrain Chunk");
         meshRenderer = meshObject.AddComponent<MeshRenderer>();
