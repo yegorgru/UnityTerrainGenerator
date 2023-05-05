@@ -47,4 +47,10 @@ public class TerrainChunk
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
     }
+
+    public void Remove()
+    {
+        meshObject.transform.SetParent(null);
+        UnityEngine.Object.DestroyImmediate(meshObject);
+    }
 }

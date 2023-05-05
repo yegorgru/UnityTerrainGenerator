@@ -16,9 +16,13 @@ public class MapGeneratorEditor : Editor
                 mapGen.DrawMapInEditor();
             }
         }
+        if (GUILayout.Button("Clear"))
+        {
+            mapGen.Clear();
+        }
         if (GUILayout.Button("Generate"))
         {
-            mapGen.terrainChunkDictionary.Clear();
+            mapGen.Clear();
             mapGen.DrawMapInEditor();
         }
         if (GUILayout.Button("Add item"))

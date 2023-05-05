@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -25,7 +27,7 @@ public class MapGenerator : MonoBehaviour
 
     public void DrawMapInEditor()
     {
-        UpdateVisibleChunks();
+        GenerateChunks();
     }
 
     public MapData GenerateMapData(Vector2 center)
@@ -52,24 +54,55 @@ public class MapGenerator : MonoBehaviour
         return new MapData(noiseMap, colourMap);
     }
 
-    private void UpdateVisibleChunks()
+    private void GenerateChunks()
     {
-        float xOffset = widthOfRegion / -2f + 0.5f;
-        float yOffset = lengthOfRegion / -2f + 0.5f;
         for (int y = 0; y < lengthOfRegion; y++)
         {
             for (int x = 0; x < widthOfRegion; x++)
             {
-                Vector2 viewedChunkCoord = new Vector2(xOffset + x, yOffset + y);
-
-                if (!terrainChunkDictionary.ContainsKey(viewedChunkCoord))
-                {
-                    TerrainChunk chunk = new TerrainChunk(viewedChunkCoord, 240, transform, mapMaterial, this);
-                    chunk.CreateMesh();
-                    terrainChunkDictionary.Add(viewedChunkCoord, chunk);
-                }
+                GenerateChunk(new Vector2(x, y));
             }
         }
+    }
+
+    public void GenerateChunk(Vector2 coordinates)
+    {
+        if(coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion)
+        {
+            Debug.LogWarning("Incorrect tile coordinates");
+            return;
+        }
+
+        float xOffset = widthOfRegion / -2f + 0.5f;
+        float yOffset = lengthOfRegion / -2f + 0.5f;
+
+        Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
+
+        if (!terrainChunkDictionary.ContainsKey(coordinates))
+        {
+            TerrainChunk chunk = new TerrainChunk(viewedChunkCoord, 240, transform, mapMaterial, this);
+            chunk.CreateMesh();
+            terrainChunkDictionary.Add(coordinates, chunk);
+        }
+    }
+
+    public void Clear()
+    {
+        foreach (KeyValuePair<Vector2, TerrainChunk> pair in terrainChunkDictionary)
+        {
+            TerrainChunk chunk = pair.Value;
+            chunk.Remove();
+        }
+        terrainChunkDictionary.Clear();
+    }
+
+    public void RemoveChunk(Vector2 coordinates)
+    {
+        if(terrainChunkDictionary.ContainsKey(coordinates))
+        {
+            terrainChunkDictionary[coordinates].Remove();
+        }
+        terrainChunkDictionary.Remove(coordinates);
     }
 }
 
