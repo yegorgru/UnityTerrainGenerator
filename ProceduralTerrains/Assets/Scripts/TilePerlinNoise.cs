@@ -14,13 +14,13 @@ public class TilePerlinNoise
 
     NoiseData noiseData;
     TerrainData terrainData;
-    TerrainType[] regions;
+    RegionsData regionsData;
 
-    public TilePerlinNoise(Vector2 coord, int size, Transform parent, Material material, NoiseData noiseData, TerrainData terrainData, TerrainType[] regions)
+    public TilePerlinNoise(Vector2 coord, int size, Transform parent, Material material, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData)
     {
         this.noiseData = noiseData;
         this.terrainData = terrainData;
-        this.regions = regions;
+        this.regionsData = regionsData;
 
         position = coord * size;
         Vector3 position3 = new Vector3(position.x, 0, position.y) * terrainData.uniformScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
@@ -35,12 +35,11 @@ public class TilePerlinNoise
         meshObject.transform.parent = parent;
         meshObject.transform.localScale = Vector3.one * terrainData.uniformScale;
         meshObject.SetActive(true);
-        this.regions = regions;
     }
 
     public void CreateMesh()
     {
-        mapData = MapGenerator.GenerateMapData(position, noiseData, regions);
+        mapData = MapGenerator.GenerateMapData(position, noiseData, regionsData);
 
         Texture2D texture = TextureGenerator.TextureFromColourMap(mapData.colorMap, MapGenerator.mapChunkSize, MapGenerator.mapChunkSize);
         Material material = GameObject.Instantiate(meshRenderer.sharedMaterial);

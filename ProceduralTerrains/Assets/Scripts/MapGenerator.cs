@@ -20,7 +20,7 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     private int lengthOfRegion = 5;
 
-    public static MapData GenerateMapData(Vector2 center, NoiseData noiseData, TerrainType[] regions)
+    public static MapData GenerateMapData(Vector2 center, NoiseData noiseData, RegionsData regionsData)
     {
         float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode);
 
@@ -30,11 +30,11 @@ public class MapGenerator : MonoBehaviour
             for (int x = 0; x < mapChunkSize; x++)
             {
                 float currentHeight = noiseMap[x, y];
-                for (int i = 0; i < regions.Length; i++)
+                for (int i = 0; i < regionsData.regions.Length; i++)
                 {
-                    if(i == regions.Length - 1 || currentHeight <= regions[i].height)
+                    if(i == regionsData.regions.Length - 1 || currentHeight <= regionsData.regions[i].height)
                     {
-                        colourMap[mapChunkSize * y + x] = regions[i].colour;
+                        colourMap[mapChunkSize * y + x] = regionsData.regions[i].colour;
                         break;
                     }
                 }
@@ -44,18 +44,18 @@ public class MapGenerator : MonoBehaviour
         return new MapData(noiseMap, colourMap);
     }
 
-    public void GenerateChunks(NoiseData noiseData, TerrainData terrainData, TerrainType[] regions)
+    public void GenerateChunks(NoiseData noiseData, TerrainData terrainData, RegionsData regionsData)
     {
         for (int y = 0; y < lengthOfRegion; y++)
         {
             for (int x = 0; x < widthOfRegion; x++)
             {
-                GenerateChunk(new Vector2(x, y), noiseData, terrainData, regions);
+                GenerateChunk(new Vector2(x, y), noiseData, terrainData, regionsData);
             }
         }
     }
 
-    public void GenerateChunk(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, TerrainType[] regions)
+    public void GenerateChunk(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData)
     {
         if(coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion)
         {
@@ -70,7 +70,7 @@ public class MapGenerator : MonoBehaviour
 
         if (!terrainChunkDictionary.ContainsKey(coordinates))
         {
-            TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, 240, transform, mapMaterial, noiseData, terrainData, regions);
+            TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, 240, transform, mapMaterial, noiseData, terrainData, regionsData);
             chunk.CreateMesh();
             terrainChunkDictionary.Add(coordinates, chunk);
         }
@@ -94,14 +94,6 @@ public class MapGenerator : MonoBehaviour
         }
         terrainChunkDictionary.Remove(coordinates);
     }
-}
-
-[System.Serializable]
-public struct TerrainType
-{
-    public string name;
-    public float height;
-    public Color colour;
 }
 
 public struct MapData
