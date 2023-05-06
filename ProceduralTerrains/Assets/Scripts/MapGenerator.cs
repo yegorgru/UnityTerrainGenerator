@@ -6,18 +6,13 @@ using UnityEngine.EventSystems;
 
 public class MapGenerator : MonoBehaviour
 {
-    public TerrainData terrainData;
-    public NoiseData noiseData;
-
     public const int mapChunkSize = 241;
 
     public bool autoUpdate;
 
-    public TerrainType[] regions;
-
     public Material mapMaterial;
 
-    public Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
+    public Dictionary<Vector2, TilePerlinNoise> terrainChunkDictionary = new Dictionary<Vector2, TilePerlinNoise>();
 
     [SerializeField]
     private int widthOfRegion = 5;
@@ -25,12 +20,7 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     private int lengthOfRegion = 5;
 
-    public void DrawMapInEditor()
-    {
-        GenerateChunks();
-    }
-
-    public MapData GenerateMapData(Vector2 center)
+    public static MapData GenerateMapData(Vector2 center, NoiseData noiseData, TerrainType[] regions)
     {
         float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode);
 
@@ -54,18 +44,18 @@ public class MapGenerator : MonoBehaviour
         return new MapData(noiseMap, colourMap);
     }
 
-    private void GenerateChunks()
+    public void GenerateChunks(NoiseData noiseData, TerrainData terrainData, TerrainType[] regions)
     {
         for (int y = 0; y < lengthOfRegion; y++)
         {
             for (int x = 0; x < widthOfRegion; x++)
             {
-                GenerateChunk(new Vector2(x, y));
+                GenerateChunk(new Vector2(x, y), noiseData, terrainData, regions);
             }
         }
     }
 
-    public void GenerateChunk(Vector2 coordinates)
+    public void GenerateChunk(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, TerrainType[] regions)
     {
         if(coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion)
         {
@@ -80,7 +70,7 @@ public class MapGenerator : MonoBehaviour
 
         if (!terrainChunkDictionary.ContainsKey(coordinates))
         {
-            TerrainChunk chunk = new TerrainChunk(viewedChunkCoord, 240, transform, mapMaterial, this);
+            TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, 240, transform, mapMaterial, noiseData, terrainData, regions);
             chunk.CreateMesh();
             terrainChunkDictionary.Add(coordinates, chunk);
         }
@@ -88,9 +78,9 @@ public class MapGenerator : MonoBehaviour
 
     public void Clear()
     {
-        foreach (KeyValuePair<Vector2, TerrainChunk> pair in terrainChunkDictionary)
+        foreach (KeyValuePair<Vector2, TilePerlinNoise> pair in terrainChunkDictionary)
         {
-            TerrainChunk chunk = pair.Value;
+            TilePerlinNoise chunk = pair.Value;
             chunk.Remove();
         }
         terrainChunkDictionary.Clear();

@@ -13,7 +13,7 @@ public class MapGeneratorEditor : Editor
         {
             if (mapGen.autoUpdate)
             {
-                mapGen.DrawMapInEditor();
+                // mapGen.DrawMapInEditor();
             }
         }
         if (GUILayout.Button("Clear"))
@@ -22,8 +22,8 @@ public class MapGeneratorEditor : Editor
         }
         if (GUILayout.Button("Generate"))
         {
-            mapGen.Clear();
-            mapGen.DrawMapInEditor();
+            GenerateTilesWindow window = GenerateTilesWindow.CreateGenerateTilesWindow(mapGen);
+            window.Show();
         }
         if (GUILayout.Button("Add item"))
         {
