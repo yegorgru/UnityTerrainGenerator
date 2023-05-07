@@ -12,7 +12,11 @@ public class TileBuildingEditor : Editor
         DrawDefaultInspector();
         if (GUILayout.Button("Clear"))
         {
-            // mapGen.Clear();
+            while (building.transform.childCount > 0)
+            {
+                Transform child = building.transform.GetChild(0);
+                GameObject.DestroyImmediate(child.gameObject);
+            }
         }
         if (GUILayout.Button("Generate"))
         {

@@ -7,7 +7,16 @@ public class TileBuilding : MonoBehaviour
     private GameObject wallPrefab;
 
     [SerializeField]
+    private GameObject windowPrefab;
+
+    [SerializeField]
+    private GameObject floorPrefab;
+
+    [SerializeField]
     private GameObject roofPrefab;
+
+    [SerializeField]
+    private GameObject doorPrefab;
 
     [SerializeField]
     private int width = 3;
@@ -21,6 +30,9 @@ public class TileBuilding : MonoBehaviour
     [SerializeField]
     private int numberOfFloors;
 
+    [SerializeField]
+    private float windowChance;
+
     private Floor[] floors;
 
     Vector2 position;
@@ -31,16 +43,68 @@ public class TileBuilding : MonoBehaviour
 
     public void Generate()
     {
+        System.Random rnd = new System.Random();
+        int doorWallNumber = rnd.Next(length * width);
+        int findDoorCounter = 0;
+
         floors = new Floor[numberOfFloors];
         int floorCount = 0;
+
+        int[] bounds = new int[] {0, width - 1, 0, length - 1};
+
         foreach (Floor floor in floors)
         {
             Room[,] rooms = new Room[width, length];
-            for(int i = 0; i < width; i++)
+            for(int i = bounds[0]; i <= bounds[1]; i++)
             {
-                for(int j = 0; j < length; j++)
+                for(int j = bounds[2]; j <= bounds[3]; j++)
                 {
-                    rooms[i, j] = new Room(new Vector2(i, j), floorCount == numberOfFloors - 1);
+                    Wall[] walls = new Wall[4];
+                    for(int k = 0; k < 4; k++)
+                    {
+                        if (floorCount == 0)
+                        {
+                            bool sideWall = false;
+                            if (i == 0 && k == 0)
+                            {
+                                sideWall = true;
+                            }
+                            else if (i == width - 1 && k == 2)
+                            {
+                                sideWall = true;
+                            }
+                            else if (j == 0 && k == 3)
+                            {
+                                sideWall = true;
+                            }
+                            else if (j == length - 1 && k == 1)
+                            {
+                                sideWall = true;
+                            }
+                            if(sideWall)
+                            {
+                                if(findDoorCounter == doorWallNumber)
+                                {
+                                    findDoorCounter++;
+                                    walls[k] = new Wall(Wall.WallType.Door);
+                                    continue;
+                                }
+                                else
+                                {
+                                    findDoorCounter++;
+                                }
+                            }
+                        }
+                        if ((float)rnd.NextDouble() < windowChance)
+                        {
+                            walls[k] = new Wall(Wall.WallType.Window);
+                        }
+                        else
+                        {
+                            walls[k] = new Wall();
+                        }
+                    }
+                    rooms[i, j] = new Room(new Vector2(i, j), walls, floorCount == numberOfFloors - 1);
                 }
             }
             floors[floorCount] = new Floor(floorCount++, rooms);
@@ -56,14 +120,26 @@ public class TileBuilding : MonoBehaviour
                 for (int j = 0; j < length; ++j)
                 {
                     Room room = floor.rooms[i, j];
-                    var wall1 = Instantiate(wallPrefab, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 0, 0));
-                    wall1.transform.parent = transform;
-                    var wall2 = Instantiate(wallPrefab, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 90, 0));
-                    wall2.transform.parent = transform;
-                    var wall3 = Instantiate(wallPrefab, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 180, 0));
-                    wall3.transform.parent = transform;
-                    var wall4 = Instantiate(wallPrefab, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 270, 0));
-                    wall4.transform.parent = transform;
+
+                    Wall[] walls = room.walls;
+                    for (int k = 0;k < 4; k++)
+                    {
+                        GameObject gameObject;
+                        switch (walls[k].walType)
+                        {
+                            case Wall.WallType.Door:
+                                gameObject = doorPrefab;
+                                break;
+                            case Wall.WallType.Window:
+                                gameObject = windowPrefab;
+                                break;
+                            default:
+                                gameObject = wallPrefab;
+                                break;
+                        }
+                        var wall = Instantiate(gameObject, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 90 * k, 0));
+                        wall.transform.parent = transform;
+                    }
 
                     if(room.hasRoof)
                     {
@@ -80,7 +156,9 @@ public class Wall
 {
     public enum WallType
     {
-        Normal
+        Normal,
+        Door,
+        Window
     }
 
     public WallType walType;
@@ -93,13 +171,14 @@ public class Wall
 
 public class Room
 {
-    public Wall[] walls;
     public Vector2 position;
+    public Wall[] walls;
     public bool hasRoof;
 
-    public Room(Vector2 position, bool hasRoof = false)
+    public Room(Vector2 position, Wall[] walls, bool hasRoof = false)
     {
         this.position = position;
+        this.walls = walls;
         this.hasRoof = hasRoof;
     }
 }

@@ -168,11 +168,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wallPrefab: {fileID: 7131680440322615550, guid: 1336472a1399610408856138be9b169c, type: 3}
+  windowPrefab: {fileID: 8867174370999395241, guid: 57206f15c75acaa42832114bbfa046e3, type: 3}
+  floorPrefab: {fileID: 9089398551771106621, guid: b796e1e017ad3e64f9075634becd559f, type: 3}
   roofPrefab: {fileID: 5427807364151561968, guid: 5f3ed58e752f7a248a31615bdab209ff, type: 3}
+  doorPrefab: {fileID: 4019758698730274552, guid: 44c3c3f1cf0c2b3478aede7dd5138299, type: 3}
   width: 3
   length: 3
   cellUnitSize: 2
   numberOfFloors: 3
+  windowChance: 0.7
 --- !u!1 &1101923196
 GameObject:
   m_ObjectHideFlags: 0
