@@ -2,7 +2,6 @@ using Codice.Client.BaseCommands.Changelist;
 using System;
 using UnityEditor;
 using UnityEngine;
-using static TileWindow;
 
 public class GenerateTilesWindow : EditorWindow
 {
