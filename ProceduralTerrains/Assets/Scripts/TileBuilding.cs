@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +14,17 @@ public class TileBuilding : MonoBehaviour
     private GameObject[] roofPrefabs;
 
     private GameObject[] doorPrefabs;
+
+    private GameObject defaultRoofPrefab;
+
+    public enum FloorSizePolicy
+    {
+        Constant,
+        Decreasing
+    }
+
+    [SerializeField]
+    private FloorSizePolicy floorSizePolicy = FloorSizePolicy.Constant;
 
     [SerializeField]
     private string prefabsPath;
@@ -47,6 +59,11 @@ public class TileBuilding : MonoBehaviour
         floorPrefabs = ReadPrefabs(prefabsPath + "\\Floors");
         roofPrefabs = ReadPrefabs(prefabsPath + "\\Roofs");
         doorPrefabs = ReadPrefabs(prefabsPath + "\\Doors");
+        defaultRoofPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabsPath + "\\Roofs\\Default.prefab");
+        if(defaultRoofPrefab == null)
+        {
+            throw new Exception("Roofs folder must contain Default.prefab");
+        }
     }
 
     private GameObject[] ReadPrefabs(String path)
@@ -64,8 +81,7 @@ public class TileBuilding : MonoBehaviour
 
     public void Generate()
     {
-        System.Random rnd = new System.Random();
-        int doorWallNumber = rnd.Next(length * width);
+        int doorWallNumber = UnityEngine.Random.Range(0, length * width);
         int findDoorCounter = 0;
 
         floors = new Floor[numberOfFloors];
@@ -75,11 +91,39 @@ public class TileBuilding : MonoBehaviour
 
         foreach (Floor floor in floors)
         {
-            Room[,] rooms = new Room[width, length];
-            for(int i = bounds[0]; i <= bounds[1]; i++)
+            int[] nextBounds = new int[4];
+            Array.Copy(bounds, nextBounds, nextBounds.Length);
+
+            if (floorSizePolicy == FloorSizePolicy.Decreasing)
             {
-                for(int j = bounds[2]; j <= bounds[3]; j++)
+                if (UnityEngine.Random.Range(0f, 1f) > 0.75 && bounds[1] - bounds[0] > 1)
                 {
+                    ++nextBounds[0];
+                }
+                if (UnityEngine.Random.Range(0f, 1f) > 0.75 && bounds[1] - bounds[0] > 1)
+                {
+                    --nextBounds[1];
+                }
+                if (UnityEngine.Random.Range(0f, 1f) > 0.75 && bounds[3] - bounds[2] > 1)
+                {
+                    ++nextBounds[2];
+                }
+                if (UnityEngine.Random.Range(0f, 1f) > 0.75 && bounds[3] - bounds[2] > 1)
+                {
+                    --nextBounds[3];
+                }
+            }
+
+            Room[,] rooms = new Room[width, length];
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < length; j++)
+                {
+                    if (i < bounds[0] || i > bounds[1] || j < bounds[2] || j > bounds[3])
+                    {
+                        rooms[i, j] = new Room(new Vector2(i, j), null, Room.RoofType.None, Room.RoomType.Blank);
+                        continue;
+                    }
                     Wall[] walls = new Wall[4];
                     for(int k = 0; k < 4; k++)
                     {
@@ -116,7 +160,7 @@ public class TileBuilding : MonoBehaviour
                                 }
                             }
                         }
-                        if ((float)rnd.NextDouble() < windowChance)
+                        if (UnityEngine.Random.Range(0f, 1f) < windowChance)
                         {
                             walls[k] = new Wall(Wall.WallType.Window);
                         }
@@ -125,16 +169,23 @@ public class TileBuilding : MonoBehaviour
                             walls[k] = new Wall();
                         }
                     }
-                    rooms[i, j] = new Room(new Vector2(i, j), walls, floorCount == numberOfFloors - 1);
+                    Room.RoofType roofType = Room.RoofType.None;
+                    if(floorCount == numberOfFloors - 1 ||
+                        (i < nextBounds[0] || i > nextBounds[1] || j < nextBounds[2] || j > nextBounds[3]))
+                    {
+                        roofType = floorCount == floors.Length - 1 ? Room.RoofType.Random : Room.RoofType.Default;
+                    }
+                    rooms[i, j] = new Room(new Vector2(i, j), walls, roofType);
                 }
             }
             floors[floorCount] = new Floor(floorCount++, rooms);
+
+            bounds = nextBounds;
         }
     }
 
     public void Render()
     {
-        System.Random rnd = new System.Random();
         foreach (Floor floor in floors)
         {
             for(int i = 0; i < width; ++i)
@@ -142,6 +193,10 @@ public class TileBuilding : MonoBehaviour
                 for (int j = 0; j < length; ++j)
                 {
                     Room room = floor.rooms[i, j];
+                    if (room.roomType == Room.RoomType.Blank)
+                    {
+                        continue;
+                    }
 
                     Wall[] walls = room.walls;
                     for (int k = 0;k < 4; k++)
@@ -150,26 +205,39 @@ public class TileBuilding : MonoBehaviour
                         switch (walls[k].walType)
                         {
                             case Wall.WallType.Door:
-                                gameObject = doorPrefabs[rnd.Next(doorPrefabs.Length)];
+                                gameObject = doorPrefabs[UnityEngine.Random.Range(0, doorPrefabs.Length)];
                                 break;
                             case Wall.WallType.Window:
-                                gameObject = windowPrefabs[rnd.Next(windowPrefabs.Length)];
+                                gameObject = windowPrefabs[UnityEngine.Random.Range(0, windowPrefabs.Length)];
                                 break;
                             default:
-                                gameObject = wallPrefabs[rnd.Next(wallPrefabs.Length)];
+                                gameObject = wallPrefabs[UnityEngine.Random.Range(0, wallPrefabs.Length)];
                                 break;
                         }
                         var wall = Instantiate(gameObject, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 90 * k, 0));
                         wall.transform.parent = transform;
                     }
 
-                    if(room.hasRoof)
+                    var roomFloor = Instantiate(floorPrefabs[UnityEngine.Random.Range(0, floorPrefabs.Length)], new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize - 1f, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0));
+                    roomFloor.transform.parent = transform;
+
+                    if (room.roofType != Room.RoofType.None)
                     {
-                        var roof = Instantiate(roofPrefabs[rnd.Next(roofPrefabs.Length)], new Vector3(room.position.x * cellUnitSize, floor.FloorNumber + 1.5f * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0));
+                        GameObject roofObj = room.roofType == Room.RoofType.Random ? roofPrefabs[UnityEngine.Random.Range(0, roofPrefabs.Length)] : defaultRoofPrefab;
+                        var roof = Instantiate(roofObj, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize + 1f, room.position.y * cellUnitSize), Quaternion.Euler(0, 270, 0));
                         roof.transform.parent = transform;
                     }
                 }
             }
+        }
+    }
+
+    public void Clear()
+    {
+        while (transform.childCount > 0)
+        {
+            Transform child = transform.GetChild(0);
+            GameObject.DestroyImmediate(child.gameObject);
         }
     }
 }
@@ -180,7 +248,7 @@ public class Wall
     {
         Normal,
         Door,
-        Window
+        Window,
     }
 
     public WallType walType;
@@ -193,15 +261,30 @@ public class Wall
 
 public class Room
 {
+    public enum RoofType
+    {
+        None,
+        Default,
+        Random
+    }
+
     public Vector2 position;
     public Wall[] walls;
-    public bool hasRoof;
+    public RoofType roofType;
+    public RoomType roomType;
 
-    public Room(Vector2 position, Wall[] walls, bool hasRoof = false)
+    public enum RoomType
+    {
+        Normal,
+        Blank
+    }
+
+    public Room(Vector2 position, Wall[] walls, RoofType roofType = RoofType.None, RoomType roomType = RoomType.Normal)
     {
         this.position = position;
         this.walls = walls;
-        this.hasRoof = hasRoof;
+        this.roofType = roofType;
+        this.roomType = roomType;
     }
 }
 
