@@ -20,6 +20,7 @@ public class TileBuildingEditor : Editor
         }
         if (GUILayout.Button("Generate"))
         {
+            building.ReadPrefabs();
             building.Generate();
             building.Render();
         }

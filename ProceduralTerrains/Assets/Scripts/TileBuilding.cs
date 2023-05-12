@@ -1,22 +1,21 @@
 using System;
+using UnityEditor;
 using UnityEngine;
 
 public class TileBuilding : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject wallPrefab;
+    private GameObject[] wallPrefabs;
+
+    private GameObject[] windowPrefabs;
+
+    private GameObject[] floorPrefabs;
+
+    private GameObject[] roofPrefabs;
+
+    private GameObject[] doorPrefabs;
 
     [SerializeField]
-    private GameObject windowPrefab;
-
-    [SerializeField]
-    private GameObject floorPrefab;
-
-    [SerializeField]
-    private GameObject roofPrefab;
-
-    [SerializeField]
-    private GameObject doorPrefab;
+    private string prefabsPath;
 
     [SerializeField]
     private int width = 3;
@@ -39,6 +38,28 @@ public class TileBuilding : MonoBehaviour
 
     public TileBuilding(Vector2 coord, int size, Transform parent)
     {
+    }
+
+    public void ReadPrefabs()
+    {
+        wallPrefabs = ReadPrefabs(prefabsPath + "\\Walls");
+        windowPrefabs = ReadPrefabs(prefabsPath + "\\Windows");
+        floorPrefabs = ReadPrefabs(prefabsPath + "\\Floors");
+        roofPrefabs = ReadPrefabs(prefabsPath + "\\Roofs");
+        doorPrefabs = ReadPrefabs(prefabsPath + "\\Doors");
+    }
+
+    private GameObject[] ReadPrefabs(String path)
+    {
+        string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { path });
+        GameObject[] objects = new GameObject[guids.Length];
+        int objCounter = 0;
+        foreach (string guid in guids)
+        {
+            string guidPath = AssetDatabase.GUIDToAssetPath(guid);
+            objects[objCounter++] = AssetDatabase.LoadAssetAtPath(guidPath, typeof(GameObject)) as GameObject;
+        }
+        return objects;
     }
 
     public void Generate()
@@ -113,7 +134,8 @@ public class TileBuilding : MonoBehaviour
 
     public void Render()
     {
-        foreach(Floor floor in floors)
+        System.Random rnd = new System.Random();
+        foreach (Floor floor in floors)
         {
             for(int i = 0; i < width; ++i)
             {
@@ -128,13 +150,13 @@ public class TileBuilding : MonoBehaviour
                         switch (walls[k].walType)
                         {
                             case Wall.WallType.Door:
-                                gameObject = doorPrefab;
+                                gameObject = doorPrefabs[rnd.Next(doorPrefabs.Length)];
                                 break;
                             case Wall.WallType.Window:
-                                gameObject = windowPrefab;
+                                gameObject = windowPrefabs[rnd.Next(windowPrefabs.Length)];
                                 break;
                             default:
-                                gameObject = wallPrefab;
+                                gameObject = wallPrefabs[rnd.Next(wallPrefabs.Length)];
                                 break;
                         }
                         var wall = Instantiate(gameObject, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 90 * k, 0));
@@ -143,7 +165,7 @@ public class TileBuilding : MonoBehaviour
 
                     if(room.hasRoof)
                     {
-                        var roof = Instantiate(roofPrefab, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber + 1.5f * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0));
+                        var roof = Instantiate(roofPrefabs[rnd.Next(roofPrefabs.Length)], new Vector3(room.position.x * cellUnitSize, floor.FloorNumber + 1.5f * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0));
                         roof.transform.parent = transform;
                     }
                 }
