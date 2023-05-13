@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(TileBuilding))]
+[CustomEditor(typeof(Building))]
 public class TileBuildingEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        TileBuilding building = (TileBuilding)target;
+        Building building = (Building)target;
         DrawDefaultInspector();
         if (GUILayout.Button("Generate"))
         {

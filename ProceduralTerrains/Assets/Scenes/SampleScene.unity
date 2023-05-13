@@ -164,7 +164,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 727790443}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e80fba536594ed048a6a91ad6165809a, type: 3}
+  m_Script: {fileID: 11500000, guid: 9b1c7d29136a8e94da8aea3e73ad4df1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   floorSizePolicy: 1
@@ -204,7 +204,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   autoUpdate: 0
-  mapMaterial: {fileID: 2100000, guid: b47b8b7596804104c96c695761ea9069, type: 2}
   widthOfRegion: 4
   lengthOfRegion: 4
 --- !u!4 &1101923199

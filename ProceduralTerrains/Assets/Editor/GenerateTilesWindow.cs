@@ -6,13 +6,11 @@ using UnityEngine;
 public class GenerateTilesWindow : EditorWindow
 {
     private MapGenerator mapGenerator;
-    private TileProperties tileProperties;
-    private TileType tileType;
 
 
     public static GenerateTilesWindow CreateGenerateTilesWindow(MapGenerator mapGenerator)
     {
-        GenerateTilesWindow window = ScriptableObject.CreateInstance<GenerateTilesWindow>();
+        GenerateTilesWindow window = CreateInstance<GenerateTilesWindow>();
         window.mapGenerator = mapGenerator;
         return window;
     }
@@ -21,21 +19,10 @@ public class GenerateTilesWindow : EditorWindow
     {
         GUILayout.Label("Generate Tiles Parameters", EditorStyles.boldLabel);
 
-        tileType = (TileType)EditorGUILayout.EnumPopup("Tile Type", tileType);
-
-        if (tileType == TileType.PerlinNoiseTableland)
-        {
-            if (tileProperties == null || !(tileProperties is PerlinNoiseProperties))
-            {
-                tileProperties = new PerlinNoiseProperties();
-            }
-        }
-        tileProperties.DrawGUI();
-
 
         if (GUILayout.Button("Generate Tiles"))
         {
-            tileProperties.CreateTiles(mapGenerator);
+            mapGenerator.GenerateChunks();
             Close();
         }
     }

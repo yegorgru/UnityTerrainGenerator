@@ -1,10 +1,9 @@
 using System;
 using UnityEngine;
 
-public class TilePerlinNoise
+public class TilePerlinNoise : Tile
 {
-    GameObject meshObject;
-    Vector2 position;
+    public Vector2 position;
 
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
@@ -12,20 +11,16 @@ public class TilePerlinNoise
 
     MapData mapData;
 
-    NoiseData noiseData;
     TerrainData terrainData;
-    RegionsData regionsData;
 
-    public TilePerlinNoise(Vector2 coord, int size, Transform parent, Material material, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData)
+    public TilePerlinNoise(Vector2 coord, int size, Transform parent, Material material, TerrainData terrainData)
     {
-        this.noiseData = noiseData;
         this.terrainData = terrainData;
-        this.regionsData = regionsData;
 
         position = coord * size;
         Vector3 position3 = new Vector3(position.x, 0, position.y) * terrainData.uniformScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
-        meshObject = new GameObject("Terrain Chunk");
+        meshObject = new GameObject("Perline Noise Tile");
         meshRenderer = meshObject.AddComponent<MeshRenderer>();
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
@@ -37,11 +32,9 @@ public class TilePerlinNoise
         meshObject.SetActive(true);
     }
 
-    public void CreateMesh()
+    public void CreateMesh(MapData mapData)
     {
-        mapData = MapGenerator.GenerateMapData(position, noiseData, regionsData);
-
-        Texture2D texture = TextureGenerator.TextureFromColourMap(mapData.colorMap, MapGenerator.mapChunkSize, MapGenerator.mapChunkSize);
+        Texture2D texture = TextureGenerator.TextureFromColourMap(mapData.colorMap, GeneratorPerlinNoise.mapChunkSize, GeneratorPerlinNoise.mapChunkSize);
         Material material = GameObject.Instantiate(meshRenderer.sharedMaterial);
         material.SetTexture("_MainTex", texture);
         meshRenderer.material = material;
@@ -50,11 +43,5 @@ public class TilePerlinNoise
         Mesh mesh = meshData.CreateMesh();
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
-    }
-
-    public void Remove()
-    {
-        meshObject.transform.SetParent(null);
-        UnityEngine.Object.DestroyImmediate(meshObject);
     }
 }

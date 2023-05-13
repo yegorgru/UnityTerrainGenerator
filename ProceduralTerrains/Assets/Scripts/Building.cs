@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-public class TileBuilding : MonoBehaviour
+public class Building : MonoBehaviour
 {
     private GameObject[] wallPrefabs;
 
@@ -48,7 +48,7 @@ public class TileBuilding : MonoBehaviour
 
     Vector2 position;
 
-    public TileBuilding(Vector2 coord, int size, Transform parent)
+    public Building(Vector2 coord, int size, Transform parent)
     {
     }
 

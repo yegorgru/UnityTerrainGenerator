@@ -1,89 +1,61 @@
 ﻿using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class MapGenerator : MonoBehaviour
 {
-    public const int mapChunkSize = 241;
-
     public bool autoUpdate;
 
-    public Material mapMaterial;
+    public Dictionary<Vector2, Tile> terrainChunkDictionary = new Dictionary<Vector2, Tile>();
 
-    public Dictionary<Vector2, TilePerlinNoise> terrainChunkDictionary = new Dictionary<Vector2, TilePerlinNoise>();
+    public int widthOfRegion = 5;
 
-    [SerializeField]
-    private int widthOfRegion = 5;
+    public int lengthOfRegion = 5;
 
-    [SerializeField]
-    private int lengthOfRegion = 5;
+    public GeneratorPerlinNoise generatorPerlinNoise = new GeneratorPerlinNoise();
 
-    public static MapData GenerateMapData(Vector2 center, NoiseData noiseData, RegionsData regionsData)
+    public void GenerateChunks()
     {
-        float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode);
-
-        Color[] colourMap = new Color[mapChunkSize * mapChunkSize];
-        for (int y = 0; y < mapChunkSize; y++)
-        {
-            for (int x = 0; x < mapChunkSize; x++)
-            {
-                float currentHeight = noiseMap[x, y];
-                for (int i = 0; i < regionsData.regions.Length; i++)
-                {
-                    if(i == regionsData.regions.Length - 1 || currentHeight <= regionsData.regions[i].height)
-                    {
-                        colourMap[mapChunkSize * y + x] = regionsData.regions[i].colour;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return new MapData(noiseMap, colourMap);
-    }
-
-    public void GenerateChunks(NoiseData noiseData, TerrainData terrainData, RegionsData regionsData)
-    {
+        NoiseData noiseData = AssetDatabase.LoadAssetAtPath<NoiseData>("Assets\\TerrainAssets\\DefaultNoise.asset");
+        TerrainData terrainData = AssetDatabase.LoadAssetAtPath<TerrainData>("Assets\\TerrainAssets\\DefaultTerrain.asset");
+        RegionsData regionsData = AssetDatabase.LoadAssetAtPath<RegionsData>("Assets\\TerrainAssets\\DefaultRegions.asset");
+        Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets\\Materials\\DefaultMaterial.mat");
         for (int y = 0; y < lengthOfRegion; y++)
         {
             for (int x = 0; x < widthOfRegion; x++)
             {
-                GenerateChunk(new Vector2(x, y), noiseData, terrainData, regionsData);
+                Vector2 coordinates = new Vector2(x, y);
+                Tile tile = generatorPerlinNoise.GeneratePerlinNoiseTile(coordinates, noiseData, terrainData, regionsData, material, widthOfRegion, lengthOfRegion, transform);
+                AddChunk(coordinates, tile);
             }
-        }
-    }
-
-    public void GenerateChunk(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData)
-    {
-        if(coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion)
-        {
-            Debug.LogWarning("Incorrect tile coordinates");
-            return;
-        }
-
-        float xOffset = widthOfRegion / -2f + 0.5f;
-        float yOffset = lengthOfRegion / -2f + 0.5f;
-
-        Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
-
-        if (!terrainChunkDictionary.ContainsKey(coordinates))
-        {
-            TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, 240, transform, mapMaterial, noiseData, terrainData, regionsData);
-            chunk.CreateMesh();
-            terrainChunkDictionary.Add(coordinates, chunk);
         }
     }
 
     public void Clear()
     {
-        foreach (KeyValuePair<Vector2, TilePerlinNoise> pair in terrainChunkDictionary)
+        foreach (KeyValuePair<Vector2, Tile> pair in terrainChunkDictionary)
         {
-            TilePerlinNoise chunk = pair.Value;
+            Tile chunk = pair.Value;
             chunk.Remove();
         }
         terrainChunkDictionary.Clear();
+    }
+
+    public void AddChunk(Vector2 coordinates, Tile tile)
+    {
+        if (coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion)
+        {
+            Debug.LogWarning("Incorrect tile coordinates");
+            return;
+        }
+        if (!terrainChunkDictionary.ContainsKey(coordinates))
+        {
+
+            terrainChunkDictionary.Add(coordinates, tile);
+        }
     }
 
     public void RemoveChunk(Vector2 coordinates)
