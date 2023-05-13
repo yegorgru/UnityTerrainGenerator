@@ -182,6 +182,27 @@ public class TileBuilding : MonoBehaviour
 
             bounds = nextBounds;
         }
+        Optimize();
+    }
+
+    private void Optimize()
+    {
+        for (int f = 0; f < floors.Length - 1; ++f)
+        {
+            Floor floor = floors[f];
+            for (int i = 1; i < width - 1; ++i)
+            {
+                for (int j = 1; j < length - 1; ++j)
+                {
+                    if (!(floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank 
+                        || floor.rooms[i, j - 1].roomType == Room.RoomType.Blank || floor.rooms[i, j + 1].roomType == Room.RoomType.Blank 
+                        || floors[f].rooms[i, j].roomType == Room.RoomType.Blank))
+                    {
+                        floor.rooms[i, j].roomType = Room.RoomType.Internal;
+                    }
+                }
+            }
+        }
     }
 
     public void Render()
@@ -193,7 +214,7 @@ public class TileBuilding : MonoBehaviour
                 for (int j = 0; j < length; ++j)
                 {
                     Room room = floor.rooms[i, j];
-                    if (room.roomType == Room.RoomType.Blank)
+                    if (room.roomType == Room.RoomType.Blank || room.roomType == Room.RoomType.Internal)
                     {
                         continue;
                     }
@@ -276,6 +297,7 @@ public class Room
     public enum RoomType
     {
         Normal,
+        Internal,
         Blank
     }
 
