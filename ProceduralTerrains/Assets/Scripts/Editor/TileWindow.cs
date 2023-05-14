@@ -32,6 +32,13 @@ public class TileWindow : EditorWindow
                 tileProperties = new PerlinNoiseProperties();
             }
         }
+        if (tileType == TileType.City)
+        {
+            if (tileProperties == null || !(tileProperties is CityProperties))
+            {
+                tileProperties = new CityProperties();
+            }
+        }
 
         tileProperties.DrawGUI();
 

@@ -36,7 +36,7 @@ public class Building : MonoBehaviour
     private int length = 3;
 
     [SerializeField]
-    private float cellUnitSize;
+    private float cellUnitSize = 2f;
 
     [SerializeField]
     private int numberOfFloors;
@@ -48,8 +48,15 @@ public class Building : MonoBehaviour
 
     Vector2 position;
 
-    public Building(Vector2 coord, int size, Transform parent)
+    public void Initialize(FloorSizePolicy floorSizePolicy, string prefabsPath, int width, int length, int numberOfFloors, float windowChance, float cellUnitSize)
     {
+        this.floorSizePolicy = floorSizePolicy;
+        this.prefabsPath = prefabsPath;
+        this.width = width;
+        this.length = length;
+        this.numberOfFloors = numberOfFloors;
+        this.windowChance = windowChance;
+        this.cellUnitSize = cellUnitSize;
     }
 
     public void ReadPrefabs()
@@ -235,18 +242,22 @@ public class Building : MonoBehaviour
                                 gameObject = wallPrefabs[UnityEngine.Random.Range(0, wallPrefabs.Length)];
                                 break;
                         }
-                        var wall = Instantiate(gameObject, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(0, 90 * k, 0));
-                        wall.transform.parent = transform;
+                        var wall = Instantiate(gameObject, Vector3.zero, Quaternion.identity, transform);
+                        wall.transform.localPosition = new Vector3(room.position.x * cellUnitSize, (floor.FloorNumber + 0.5f) * cellUnitSize, room.position.y * cellUnitSize);
+                        wall.transform.localRotation = Quaternion.Euler(0, 90 * k, 0);
+                        wall.transform.localScale = wall.transform.localScale * cellUnitSize / 2f;
                     }
 
-                    var roomFloor = Instantiate(floorPrefabs[UnityEngine.Random.Range(0, floorPrefabs.Length)], new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize - 1f, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0));
-                    roomFloor.transform.parent = transform;
+                    // var roomFloor = Instantiate(floorPrefabs[UnityEngine.Random.Range(0, floorPrefabs.Length)], new Vector3(room.position.x * cellUnitSize, (floor.FloorNumber) * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0), transform);
+                    // roomFloor.transform.localScale = roomFloor.transform.localScale * cellUnitSize / 2f;
 
                     if (room.roofType != Room.RoofType.None)
                     {
                         GameObject roofObj = room.roofType == Room.RoofType.Random ? roofPrefabs[UnityEngine.Random.Range(0, roofPrefabs.Length)] : defaultRoofPrefab;
-                        var roof = Instantiate(roofObj, new Vector3(room.position.x * cellUnitSize, floor.FloorNumber * cellUnitSize + 1f, room.position.y * cellUnitSize), Quaternion.Euler(0, 270, 0));
-                        roof.transform.parent = transform;
+                        var roof = Instantiate(roofObj, Vector3.zero, Quaternion.identity, transform);
+                        roof.transform.localPosition = new Vector3(room.position.x * cellUnitSize, (floor.FloorNumber + 1f) * cellUnitSize, room.position.y * cellUnitSize);
+                        // roof.transform.localRotation = Quaternion.Euler(0, 270, 0);
+                        roof.transform.localScale = roof.transform.localScale * cellUnitSize / 2f;
                     }
                 }
             }

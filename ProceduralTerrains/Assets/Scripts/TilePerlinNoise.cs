@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using UnityEngine;
 
 public class TilePerlinNoise : Tile
@@ -9,16 +10,16 @@ public class TilePerlinNoise : Tile
     MeshFilter meshFilter;
     MeshCollider meshCollider;
 
-    MapData mapData;
-
     TerrainData terrainData;
 
-    public TilePerlinNoise(Vector2 coord, int size, Transform parent, Material material, TerrainData terrainData)
+    private const int size = 240;
+
+    public TilePerlinNoise(Vector2 coord, Transform parent, Material material, TerrainData terrainData, float sizeScale)
     {
         this.terrainData = terrainData;
 
         position = coord * size;
-        Vector3 position3 = new Vector3(position.x, 0, position.y) * terrainData.uniformScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
+        Vector3 position3 = new Vector3(coord.x, 0, coord.y) * sizeScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
         meshObject = new GameObject("Perline Noise Tile");
         meshRenderer = meshObject.AddComponent<MeshRenderer>();
@@ -28,7 +29,8 @@ public class TilePerlinNoise : Tile
         meshRenderer.material = material;
 
         meshObject.transform.parent = parent;
-        meshObject.transform.localScale = Vector3.one * terrainData.uniformScale;
+        //meshObject.transform.localScale = Vector3.one * terrainData.uniformScale;
+        meshObject.transform.localScale = Vector3.one * 1f / size * sizeScale;
         meshObject.SetActive(true);
     }
 

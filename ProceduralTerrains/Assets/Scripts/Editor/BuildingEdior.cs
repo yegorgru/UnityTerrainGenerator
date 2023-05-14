@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(Building))]
-public class TileBuildingEditor : Editor
+public class BuildingEditor : Editor
 {
     public override void OnInspectorGUI()
     {

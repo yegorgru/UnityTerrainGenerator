@@ -16,6 +16,7 @@ public class MapGenerator : MonoBehaviour
     public int lengthOfRegion = 5;
 
     public GeneratorPerlinNoise generatorPerlinNoise = new GeneratorPerlinNoise();
+    public GeneratorCity generatorCity = new GeneratorCity();
 
     public void GenerateChunks()
     {
@@ -28,7 +29,7 @@ public class MapGenerator : MonoBehaviour
             for (int x = 0; x < widthOfRegion; x++)
             {
                 Vector2 coordinates = new Vector2(x, y);
-                Tile tile = generatorPerlinNoise.GeneratePerlinNoiseTile(coordinates, noiseData, terrainData, regionsData, material, widthOfRegion, lengthOfRegion, transform);
+                Tile tile = generatorPerlinNoise.GeneratePerlinNoiseTile(coordinates, noiseData, terrainData, regionsData, widthOfRegion, lengthOfRegion, transform);
                 AddChunk(coordinates, tile);
             }
         }
@@ -44,18 +45,19 @@ public class MapGenerator : MonoBehaviour
         terrainChunkDictionary.Clear();
     }
 
-    public void AddChunk(Vector2 coordinates, Tile tile)
+    public bool CheckPosition(Vector2 coordinates)
     {
-        if (coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion)
+        if (coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion || terrainChunkDictionary.ContainsKey(coordinates))
         {
             Debug.LogWarning("Incorrect tile coordinates");
-            return;
+            return false;
         }
-        if (!terrainChunkDictionary.ContainsKey(coordinates))
-        {
+        return true;
+    }
 
-            terrainChunkDictionary.Add(coordinates, tile);
-        }
+    public void AddChunk(Vector2 coordinates, Tile tile)
+    {
+        terrainChunkDictionary.Add(coordinates, tile);
     }
 
     public void RemoveChunk(Vector2 coordinates)

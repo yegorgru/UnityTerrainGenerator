@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class GeneratorPerlinNoise
@@ -30,15 +31,16 @@ public class GeneratorPerlinNoise
         return new MapData(noiseMap, colourMap);
     }
 
-    public TilePerlinNoise GeneratePerlinNoiseTile(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, Material material, int widthOfRegion, int lengthOfRegion, Transform transform)
+    public TilePerlinNoise GeneratePerlinNoiseTile(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
+        Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets\\Materials\\DefaultMaterial.mat");
 
-        TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, 240, transform, material, terrainData);
-        chunk.CreateMesh(GeneratorPerlinNoise.GenerateMapData(chunk.position, noiseData, regionsData));
+        TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, transform, material, terrainData, 100f);
+        chunk.CreateMesh(GenerateMapData(chunk.position, noiseData, regionsData));
         return chunk;
     }
 }
