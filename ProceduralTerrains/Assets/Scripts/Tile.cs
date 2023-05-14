@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Tile
 {
-    protected GameObject meshObject;
+    public GameObject meshObject;
     public void Remove()
     {
         meshObject.transform.SetParent(null);

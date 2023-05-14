@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class GeneratorCity
@@ -14,6 +15,17 @@ public class GeneratorCity
         TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f);
 
         RoadItem[,] roadItems = GenerateRoadMap(10, 10, 10);
+        GameObject straightRoad = AssetDatabase.LoadAssetAtPath<GameObject>("Assets\\Prefabs\\Roads\\roadstraight.prefab");
+        for(int i = 0; i < 10; ++i)
+        {
+            for (int j = 0; j < 10; ++j)
+            {
+                float offset = -4.5f;
+                var road = GameObject.Instantiate(straightRoad, Vector3.zero, Quaternion.identity, chunk.meshObject.transform);
+                road.transform.localPosition = new Vector3(i + offset, 0, j + offset);
+                road.transform.localScale = Vector3.one * 0.5f;
+            }
+        }
         return chunk;
     }
 
@@ -41,29 +53,29 @@ public class GeneratorCity
             {
                 Vector2Int v = queueToProcess.Dequeue();
                 RoadItem roadItem = roadMap[v.x, v.y];
-                if (v.x < 1 || v.x > width - 2 || v.y < 1 || v.y > length - 2)
+                if (v.x < 0 || v.x > width - 1 || v.y < 0 || v.y > length - 1)
                 {
                     continue;
                 }
-                RoadItem up = roadMap[v.x + 1, v.y];
-                RoadItem right = roadMap[v.x, v.y + 1];
-                RoadItem down = roadMap[v.x - 1, v.y];
-                RoadItem left = roadMap[v.x, v.y - 1];
+                RoadItem up = v.x + 1 != width ? roadMap[v.x + 1, v.y] : new RoadItem();
+                RoadItem right = v.y + 1 != length ? roadMap[v.x, v.y + 1] : new RoadItem();
+                RoadItem down = v.x != 0 ? roadMap[v.x - 1, v.y] : new RoadItem();
+                RoadItem left = v.y != 0 ? roadMap[v.x, v.y - 1] : new RoadItem();
                 roadItem.Process(up, right, down, left);
                 roadMap[v.x, v.y] = roadItem;
-                if (!up.IsProcessed())
+                if (v.x + 1 != width && !up.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x + 1, v.y));
                 }
-                if (!right.IsProcessed())
+                if (v.y + 1 != length && !right.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x, v.y + 1));
                 }
-                if (!down.IsProcessed())
+                if (v.x != 0 && !down.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x - 1, v.y));
                 }
-                if (!left.IsProcessed())
+                if (v.y != 0 && !left.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x, v.y - 1));
                 }
