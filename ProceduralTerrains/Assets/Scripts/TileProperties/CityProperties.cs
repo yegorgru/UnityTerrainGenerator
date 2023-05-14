@@ -7,12 +7,12 @@ using UnityEngine;
 
 public class CityProperties : TileProperties
 {
+    static int width = 200;
+    static int maxNumberOfBuildings = 5;
+
     public override void DrawGUI()
     {
-        //noiseData = (NoiseData)EditorGUILayout.ObjectField("Noise Data", noiseData, typeof(NoiseData), false);
-        //terrainData = (TerrainData)EditorGUILayout.ObjectField("Terrain Data", terrainData, typeof(TerrainData), false);
-        //regionsData = (RegionsData)EditorGUILayout.ObjectField("Regions Data", regionsData, typeof(RegionsData), false);
-        //material = (Material)EditorGUILayout.ObjectField("Material", material, typeof(Material), false);
+        width = EditorGUILayout.IntField(width);
     }
 
     public override void CreateTile(MapGenerator mapGenerator, float xCoord, float yCoord)
