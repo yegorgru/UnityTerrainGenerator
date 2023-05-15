@@ -20,7 +20,7 @@ public class CityProperties : TileProperties
         Vector2 coordinates = new Vector2(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = mapGenerator.generatorCity.GenerateCityTile(coordinates, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform);
+            Tile tile = TileCity.GenerateTile(coordinates, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }
