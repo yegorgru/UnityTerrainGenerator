@@ -7,7 +7,7 @@ using UnityEngine;
 public class TileCity : Tile
 {
     public Vector2 position;
-    Building building;
+    RoadItem[,] roadItems;
 
     static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform)
     {
@@ -17,7 +17,10 @@ public class TileCity : Tile
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
         TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f);
-        chunk.placeRoadItems();
+        chunk.PlaceRoadItems();
+        chunk.GenerateMap();
+
+
         return chunk;
     }
 
@@ -36,33 +39,87 @@ public class TileCity : Tile
         // Scale the plane
         meshObject.transform.localScale = Vector3.one * sizeScale / 10f;
 
-        GameObject buildingObj = new GameObject("Building");
-
-        building = buildingObj.AddComponent<Building>();
-        buildingObj.transform.parent = meshObject.transform;
-        buildingObj.transform.localPosition = new Vector3(0, 0, 0);
-
-        building.Initialize(Building.FloorSizePolicy.Constant, "Assets/Prefabs", 3, 3, 5, 0.75f, 1f);
-        building.ReadPrefabs();
-        building.Generate();
-        building.Render();
-
         meshObject.SetActive(true);
     }
 
-    private void placeRoadItems()
+    private void PlaceRoadItems()
     {
-        RoadItem[,] roadItems = GenerateRoadMap(10, 10);
+        roadItems = GenerateRoadMap(10, 10);
         float offset = -4.5f;
         for (int i = 0; i < roadItems.GetLength(0); ++i)
         {
             for (int j = 0; j < roadItems.GetLength(1); ++j)
             {
-                GameObject road = RoadItem.InstantiateRoadItem(roadItems[j, i], "Assets\\Prefabs\\Roads", meshObject.transform);
+                GameObject road = InstantiateRoadItem(roadItems[j, i], "Assets\\Prefabs\\Roads", meshObject.transform);
                 if (road != null)
                 {
                     road.transform.localPosition = new Vector3(i + offset, 0, j + offset);
                     road.transform.localScale = Vector3.one * 0.5f;
+                }
+            }
+        }
+    }
+
+    public enum CityItem
+    {
+        None,
+        Building,
+        Road,
+        Park,
+        Default
+    }
+
+    private void GenerateMap()
+    {
+        CityItem[,] cityItems = new CityItem[100, 100];
+        for (int i = 0; i < 10; ++i)
+        {
+            for (int j = 0; j < 10; ++j)
+            {
+                RoadItem roadItem = roadItems[j, i];
+                if(roadItem.IsUpRoad())
+                {
+                    for(int k = 2; k < 5; ++k)
+                    {
+                        cityItems[j * 5 + k, i * 5 + 2] = CityItem.Road;
+                    }
+                }
+                if (roadItem.IsDownRoad())
+                {
+                    for (int k = 0; k < 3; ++k)
+                    {
+                        cityItems[j * 5 + k, i * 5 + 2] = CityItem.Road;
+                    }
+                }
+                if(roadItem.IsRightRoad()) { 
+                    for (int k = 2; k < 5; ++k)
+                    {
+                        cityItems[j * 5 + 2, i * 5 + k] = CityItem.Road;
+                    }
+                }
+                if (roadItem.IsLeftRoad())
+                {
+                    for (int k = 0; k < 3; ++k)
+                    {
+                        cityItems[j * 5 + 2, i * 5 + k] = CityItem.Road;
+                    }
+                }
+            }
+        }
+        for(int i = 0; i < 50; ++i)
+        {
+            for(int j = 0; j < 50; ++j)
+            {
+                if (cityItems[j, i] != CityItem.Road)
+                {
+                    GameObject buildingObj = new GameObject();
+                    Building building = buildingObj.AddComponent<Building>();
+                    building.Initialize(Building.FloorSizePolicy.Constant, "Assets/Prefabs/Simplified", 1, 1, 5, 0.75f, 2f);
+                    building.ReadPrefabs();
+                    building.Generate();
+                    building.Render();
+                    buildingObj.transform.parent = meshObject.transform;
+                    buildingObj.transform.localPosition = new Vector3(0.2f * i - 4.9f, 0, 0.2f * j - 4.9f);
                 }
             }
         }
@@ -119,6 +176,95 @@ public class TileCity : Tile
         }
         return roadMap;
     }
+
+    public GameObject InstantiateRoadItem(RoadItem roadItem, String pathToRoads, Transform parent)
+    {
+        GameObject road = null;
+        int numberOfRoads = Convert.ToInt32(roadItem.IsUpRoad()) + Convert.ToInt32(roadItem.IsDownRoad()) + Convert.ToInt32(roadItem.IsRightRoad()) + Convert.ToInt32(roadItem.IsLeftRoad());
+        if (numberOfRoads == 1)
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadend.prefab");
+            road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
+            if (roadItem.IsUpRoad())
+            {
+                road.transform.localRotation = Quaternion.identity;
+            }
+            else if (roadItem.IsRightRoad())
+            {
+                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            }
+            else if (roadItem.IsDownRoad())
+            {
+                road.transform.localRotation = Quaternion.Euler(0, 180, 0);
+            }
+            else if (roadItem.IsLeftRoad())
+            {
+                road.transform.localRotation = Quaternion.Euler(0, 270, 0);
+            }
+        }
+        else if (numberOfRoads == 2)
+        {
+            if (roadItem.IsUpRoad() && roadItem.IsDownRoad())
+            {
+                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadstraight.prefab");
+                road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
+            }
+            else if (roadItem.IsLeftRoad() && roadItem.IsRightRoad())
+            {
+                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadstraight.prefab");
+                road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
+                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            }
+            else
+            {
+                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadturn.prefab");
+                road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
+                if (roadItem.IsUpRoad() && roadItem.IsRightRoad())
+                {
+                    road.transform.localRotation = Quaternion.Euler(0, 270, 0);
+                }
+                else if (roadItem.IsUpRoad() && roadItem.IsLeftRoad())
+                {
+                    road.transform.localRotation = Quaternion.Euler(0, 180, 0);
+                }
+                else if (roadItem.IsDownRoad() && roadItem.IsRightRoad())
+                {
+                    road.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                }
+                else if (roadItem.IsDownRoad() && roadItem.IsLeftRoad())
+                {
+                    road.transform.localRotation = Quaternion.Euler(0, 90, 0);
+                }
+            }
+        }
+        else if (numberOfRoads == 3)
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadtcross.prefab");
+            road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
+            if (!roadItem.IsUpRoad())
+            {
+                road.transform.localRotation = Quaternion.identity;
+            }
+            else if (!roadItem.IsRightRoad())
+            {
+                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            }
+            else if (!roadItem.IsDownRoad())
+            {
+                road.transform.localRotation = Quaternion.Euler(0, 180, 0);
+            }
+            else if (!roadItem.IsLeftRoad())
+            {
+                road.transform.localRotation = Quaternion.Euler(0, 270, 0);
+            }
+        }
+        else if (numberOfRoads == 4)
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadcross.prefab");
+            road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
+        }
+        return road;
+    }
 }
 
 public struct RoadItem
@@ -140,94 +286,6 @@ public struct RoadItem
     private bool roadLeft;
     private bool isProcessed;
     static private float newRoadChance = 0.5f;
-
-    static public GameObject InstantiateRoadItem(RoadItem roadItem, String pathToRoads, Transform parent)
-    {
-        GameObject road = null;
-        int numberOfRoads = Convert.ToInt32(roadItem.roadUp) + Convert.ToInt32(roadItem.roadDown) + Convert.ToInt32(roadItem.roadRight) + Convert.ToInt32(roadItem.roadLeft);
-        if(numberOfRoads == 1)
-        {
-            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadend.prefab");
-            road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
-            if (roadItem.roadUp) { 
-                road.transform.localRotation = Quaternion.identity;
-            }
-            else if (roadItem.roadRight)
-            {
-                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
-            }
-            else if (roadItem.roadDown)
-            {
-                road.transform.localRotation = Quaternion.Euler(0, 180, 0);
-            }
-            else if (roadItem.roadLeft)
-            {
-                road.transform.localRotation = Quaternion.Euler(0, 270, 0);
-            }
-        }
-        else if (numberOfRoads == 2)
-        {
-            if (roadItem.roadUp && roadItem.roadDown)
-            {
-                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadstraight.prefab");
-                road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
-            }
-            else if (roadItem.roadLeft && roadItem.roadRight)
-            {
-                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadstraight.prefab");
-                road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
-                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
-            }
-            else
-            {
-                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadturn.prefab");
-                road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
-                if (roadItem.roadUp && roadItem.roadRight)
-                {
-                    road.transform.localRotation = Quaternion.Euler(0, 270, 0);
-                }
-                else if (roadItem.roadUp && roadItem.roadLeft)
-                {
-                    road.transform.localRotation = Quaternion.Euler(0, 180, 0);
-                }
-                else if (roadItem.roadDown && roadItem.roadRight)
-                {
-                    road.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                }
-                else if (roadItem.roadDown && roadItem.roadLeft)
-                {
-                    road.transform.localRotation = Quaternion.Euler(0, 90, 0);
-                }
-            }
-        }
-        else if (numberOfRoads == 3)
-        {
-            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadtcross.prefab");
-            road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
-            if (!roadItem.roadUp)
-            {
-                road.transform.localRotation = Quaternion.identity;
-            }
-            else if (!roadItem.roadRight)
-            {
-                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
-            }
-            else if (!roadItem.roadDown)
-            {
-                road.transform.localRotation = Quaternion.Euler(0, 180, 0);
-            }
-            else if (!roadItem.roadLeft)
-            {
-                road.transform.localRotation = Quaternion.Euler(0, 270, 0);
-            }
-        }
-        else if (numberOfRoads == 4)
-        {
-            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(pathToRoads + "\\roadcross.prefab");
-            road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
-        }
-        return road;
-    }
 
     public RoadItem(bool roadUp = false, bool roadRight = false, bool roadDown = false, bool roadLeft = false, bool isProcessed = false)
     {

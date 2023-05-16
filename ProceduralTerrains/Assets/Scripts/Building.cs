@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -44,8 +45,6 @@ public class Building : MonoBehaviour
 
     private Floor[] floors;
 
-    Vector2 position;
-
     public void Initialize(FloorSizePolicy floorSizePolicy, string prefabsPath, int width, int length, int numberOfFloors, float windowChance, float cellUnitSize)
     {
         this.floorSizePolicy = floorSizePolicy;
@@ -85,7 +84,7 @@ public class Building : MonoBehaviour
 
     public void Generate()
     {
-        int doorWallNumber = UnityEngine.Random.Range(0, length * width);
+        int doorWallNumber = UnityEngine.Random.Range(0, length * 2 + width * 2);
         int findDoorCounter = 0;
 
         floors = new Floor[numberOfFloors];
@@ -261,6 +260,7 @@ public class Building : MonoBehaviour
                 }
             }
         }
+        MergeChildMeshesByMaterialColor();
     }
 
     public void Clear()
@@ -269,6 +269,56 @@ public class Building : MonoBehaviour
         {
             Transform child = transform.GetChild(0);
             GameObject.DestroyImmediate(child.gameObject);
+        }
+    }
+
+    public void MergeChildMeshesByMaterialColor()
+    {
+        MeshFilter[] childMeshFilters = gameObject.GetComponentsInChildren<MeshFilter>(true);
+
+        // Group child meshes by material color
+        Dictionary<Color, List<MeshFilter>> meshGroups = new Dictionary<Color, List<MeshFilter>>();
+        foreach (MeshFilter childMeshFilter in childMeshFilters)
+        {
+            Material meshMaterial = childMeshFilter.GetComponent<MeshRenderer>().sharedMaterial;
+            Color materialColor = meshMaterial.color;
+
+            if (!meshGroups.ContainsKey(materialColor))
+            {
+                meshGroups[materialColor] = new List<MeshFilter>();
+            }
+            meshGroups[materialColor].Add(childMeshFilter);
+        }
+
+        // Merge meshes for each group
+        foreach (var group in meshGroups)
+        {
+            Color groupColor = group.Key;
+            List<MeshFilter> meshes = group.Value;
+
+            CombineInstance[] combineInstances = new CombineInstance[meshes.Count];
+            for (int i = 0; i < meshes.Count; i++)
+            {
+                MeshFilter meshFilter = meshes[i];
+                combineInstances[i].mesh = meshFilter.sharedMesh;
+                combineInstances[i].transform = meshFilter.transform.localToWorldMatrix;
+                meshFilter.gameObject.SetActive(false);
+            }
+
+            GameObject mergedObject = new GameObject("MergedObject");
+            mergedObject.transform.parent = gameObject.transform;
+            //mergedObject.transform.localPosition = Vector3.zero;
+            mergedObject.transform.localRotation = Quaternion.identity;
+            mergedObject.transform.localScale = Vector3.one;
+
+            MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();
+            MeshRenderer mergedMeshRenderer = mergedObject.AddComponent<MeshRenderer>();
+            mergedMeshRenderer.material = meshes[0].GetComponent<MeshRenderer>().sharedMaterial;
+
+            mergedMeshFilter.sharedMesh = new Mesh();
+            mergedMeshFilter.sharedMesh.CombineMeshes(combineInstances, true, true);
+
+            mergedObject.SetActive(true);
         }
     }
 }
