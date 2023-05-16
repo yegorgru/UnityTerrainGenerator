@@ -184,19 +184,19 @@ public struct RoadItem
                 road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
                 if (roadItem.roadUp && roadItem.roadRight)
                 {
-                    road.transform.localRotation = Quaternion.Euler(0, 90, 0);
+                    road.transform.localRotation = Quaternion.Euler(0, 270, 0);
                 }
                 else if (roadItem.roadUp && roadItem.roadLeft)
                 {
-                    road.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                    road.transform.localRotation = Quaternion.Euler(0, 180, 0);
                 }
                 else if (roadItem.roadDown && roadItem.roadRight)
                 {
-                    road.transform.localRotation = Quaternion.Euler(0, 180, 0);
+                    road.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 }
                 else if (roadItem.roadDown && roadItem.roadLeft)
                 {
-                    road.transform.localRotation = Quaternion.Euler(0, 270, 0);
+                    road.transform.localRotation = Quaternion.Euler(0, 90, 0);
                 }
             }
         }
@@ -206,19 +206,19 @@ public struct RoadItem
             road = GameObject.Instantiate(asset, Vector3.zero, Quaternion.identity, parent);
             if (!roadItem.roadUp)
             {
-                road.transform.localRotation = Quaternion.Euler(0, 180, 0);
+                road.transform.localRotation = Quaternion.identity;
             }
             else if (!roadItem.roadRight)
             {
-                road.transform.localRotation = Quaternion.Euler(0, 270, 0);
+                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
             }
             else if (!roadItem.roadDown)
             {
-                road.transform.localRotation = Quaternion.identity;
+                road.transform.localRotation = Quaternion.Euler(0, 180, 0);
             }
             else if (!roadItem.roadLeft)
             {
-                road.transform.localRotation = Quaternion.Euler(0, 90, 0);
+                road.transform.localRotation = Quaternion.Euler(0, 270, 0);
             }
         }
         else if (numberOfRoads == 4)
