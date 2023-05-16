@@ -9,8 +9,6 @@ public class Building : MonoBehaviour
 
     private GameObject[] windowPrefabs;
 
-    private GameObject[] floorPrefabs;
-
     private GameObject[] roofPrefabs;
 
     private GameObject[] doorPrefabs;
@@ -63,7 +61,6 @@ public class Building : MonoBehaviour
     {
         wallPrefabs = ReadPrefabs(prefabsPath + "\\Walls");
         windowPrefabs = ReadPrefabs(prefabsPath + "\\Windows");
-        floorPrefabs = ReadPrefabs(prefabsPath + "\\Floors");
         roofPrefabs = ReadPrefabs(prefabsPath + "\\Roofs");
         doorPrefabs = ReadPrefabs(prefabsPath + "\\Doors");
         defaultRoofPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabsPath + "\\Roofs\\Default.prefab");
@@ -214,6 +211,8 @@ public class Building : MonoBehaviour
 
     public void Render()
     {
+        float offsetX = 0.5f * cellUnitSize * (1f - width);
+        float offsetY = 0.5f * cellUnitSize * (1f - length);
         foreach (Floor floor in floors)
         {
             for(int i = 0; i < width; ++i)
@@ -227,7 +226,7 @@ public class Building : MonoBehaviour
                     }
 
                     Wall[] walls = room.walls;
-                    for (int k = 0;k < 4; k++)
+                    for (int k = 0; k < 4; k++)
                     {
                         GameObject gameObject;
                         switch (walls[k].walType)
@@ -243,7 +242,7 @@ public class Building : MonoBehaviour
                                 break;
                         }
                         var wall = Instantiate(gameObject, Vector3.zero, Quaternion.identity, transform);
-                        wall.transform.localPosition = new Vector3(room.position.x * cellUnitSize, (floor.FloorNumber + 0.5f) * cellUnitSize, room.position.y * cellUnitSize);
+                        wall.transform.localPosition = new Vector3(offsetX + room.position.x * cellUnitSize, (floor.FloorNumber + 0.5f) * cellUnitSize, offsetY + room.position.y * cellUnitSize);
                         wall.transform.localRotation = Quaternion.Euler(0, 90 * k, 0);
                         wall.transform.localScale = wall.transform.localScale * cellUnitSize / 2f;
                     }
@@ -255,7 +254,7 @@ public class Building : MonoBehaviour
                     {
                         GameObject roofObj = room.roofType == Room.RoofType.Random ? roofPrefabs[UnityEngine.Random.Range(0, roofPrefabs.Length)] : defaultRoofPrefab;
                         var roof = Instantiate(roofObj, Vector3.zero, Quaternion.identity, transform);
-                        roof.transform.localPosition = new Vector3(room.position.x * cellUnitSize, (floor.FloorNumber + 1f) * cellUnitSize, room.position.y * cellUnitSize);
+                        roof.transform.localPosition = new Vector3(offsetX + room.position.x * cellUnitSize, (floor.FloorNumber + 1f) * cellUnitSize, offsetY + room.position.y * cellUnitSize);
                         // roof.transform.localRotation = Quaternion.Euler(0, 270, 0);
                         roof.transform.localScale = roof.transform.localScale * cellUnitSize / 2f;
                     }
