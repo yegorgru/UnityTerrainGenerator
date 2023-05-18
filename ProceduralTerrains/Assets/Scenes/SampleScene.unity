@@ -168,9 +168,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   floorSizePolicy: 0
-  prefabsPath: Assets/Prefabs
-  width: 10
-  length: 10
+  prefabsPath: Assets/Prefabs/Detailed
+  width: 3
+  length: 5
   cellUnitSize: 1
   numberOfFloors: 7
   windowChance: 0.7

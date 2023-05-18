@@ -193,15 +193,35 @@ public class Building : MonoBehaviour
         for (int f = 0; f < floors.Length - 1; ++f)
         {
             Floor floor = floors[f];
-            for (int i = 1; i < width - 1; ++i)
+            for (int i = 0; i < width; ++i)
             {
-                for (int j = 1; j < length - 1; ++j)
+                for (int j = 0; j < length; ++j)
                 {
-                    if (!(floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank 
-                        || floor.rooms[i, j - 1].roomType == Room.RoomType.Blank || floor.rooms[i, j + 1].roomType == Room.RoomType.Blank 
+                    if(i == 0 || j == 0 || i == width - 1 || j == length - 1)
+                    {
+                        if (i > 0 && floor.rooms[i - 1, j].roomType != Room.RoomType.Blank)
+                        {
+                            floor.rooms[i, j].walls[0].walType = Wall.WallType.Blank;
+                        }
+                        if (i < width - 1 && floor.rooms[i + 1, j].roomType != Room.RoomType.Blank)
+                        {
+                            floor.rooms[i, j].walls[2].walType = Wall.WallType.Blank;
+                        }
+                        if (j > 0 && floor.rooms[i, j - 1].roomType != Room.RoomType.Blank)
+                        {
+                            floor.rooms[i, j].walls[3].walType = Wall.WallType.Blank;
+                        }
+                        if (j < length - 1 && floor.rooms[i, j + 1].roomType != Room.RoomType.Blank)
+                        {
+                            floor.rooms[i, j].walls[1].walType = Wall.WallType.Blank;
+                        }
+                    }
+                    else if (!(floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank
+                        || floor.rooms[i, j - 1].roomType == Room.RoomType.Blank || floor.rooms[i, j + 1].roomType == Room.RoomType.Blank
                         || floors[f].rooms[i, j].roomType == Room.RoomType.Blank))
                     {
                         floor.rooms[i, j].roomType = Room.RoomType.Internal;
+                        continue;
                     }
                 }
             }
@@ -236,9 +256,11 @@ public class Building : MonoBehaviour
                             case Wall.WallType.Window:
                                 gameObject = windowPrefabs[UnityEngine.Random.Range(0, windowPrefabs.Length)];
                                 break;
-                            default:
+                            case Wall.WallType.Normal:
                                 gameObject = wallPrefabs[UnityEngine.Random.Range(0, wallPrefabs.Length)];
                                 break;
+                            default:
+                                continue;
                         }
                         var wall = Instantiate(gameObject, Vector3.zero, Quaternion.identity, transform);
                         wall.transform.localPosition = new Vector3(offsetX + room.position.x * cellUnitSize, (floor.FloorNumber + 0.5f) * cellUnitSize, offsetY + room.position.y * cellUnitSize);
@@ -353,6 +375,7 @@ public class Wall
         Normal,
         Door,
         Window,
+        Blank
     }
 
     public WallType walType;
