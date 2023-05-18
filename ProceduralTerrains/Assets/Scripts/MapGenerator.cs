@@ -36,10 +36,10 @@ public class MapGenerator : MonoBehaviour
 
     public void Clear()
     {
-        foreach (KeyValuePair<Vector2, Tile> pair in terrainChunkDictionary)
+        while (transform.childCount > 0)
         {
-            Tile chunk = pair.Value;
-            chunk.Remove();
+            Transform child = transform.GetChild(0);
+            GameObject.DestroyImmediate(child.gameObject);
         }
         terrainChunkDictionary.Clear();
     }

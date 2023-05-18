@@ -3,13 +3,16 @@ using UnityEngine;
 
 public class CityProperties : TileProperties
 {
-    static int width = 200;
-    static int maxNumberOfBuildings = 5;
-    static Color color = Color.white;
+    public int width = 200;
+    public float buildingChance = 0.5f;
+    public int maxFloor = 10;
+    public Color color = Color.white;
 
     public override void DrawGUI()
     {
         width = EditorGUILayout.IntField(width);
+        buildingChance = EditorGUILayout.FloatField(buildingChance);
+        maxFloor = EditorGUILayout.IntField(maxFloor);
         color = EditorGUILayout.ColorField("Sidewalk color", color);
     }
 
@@ -18,7 +21,7 @@ public class CityProperties : TileProperties
         Vector2 coordinates = new Vector2(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = TileCity.GenerateTile(coordinates, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform, color);
+            Tile tile = TileCity.GenerateTile(coordinates, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform, color, buildingChance, maxFloor);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }
