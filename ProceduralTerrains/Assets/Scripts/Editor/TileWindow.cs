@@ -5,7 +5,7 @@ public class TileWindow : EditorWindow
 {
 
     private MapGenerator mapGenerator;
-    private TileType tileType;
+    private MapGenerator.TileType tileType;
     private int xCoord;
     private int yCoord;
     private TileProperties tileProperties;
@@ -21,18 +21,18 @@ public class TileWindow : EditorWindow
     {
         GUILayout.Label("Tile Parameters", EditorStyles.boldLabel);
 
-        tileType = (TileType)EditorGUILayout.EnumPopup("Tile Type", tileType);
+        tileType = (MapGenerator.TileType)EditorGUILayout.EnumPopup("Tile Type", tileType);
         xCoord = EditorGUILayout.IntField("X coordinate of tile", xCoord);
         yCoord = EditorGUILayout.IntField("Y coordinate of tile", yCoord);
 
-        if (tileType == TileType.PerlinNoiseTableland)
+        if (tileType == MapGenerator.TileType.PerlinNoiseTableland)
         {
             if (tileProperties == null || !(tileProperties is PerlinNoiseProperties))
             {
                 tileProperties = new PerlinNoiseProperties();
             }
         }
-        if (tileType == TileType.City)
+        if (tileType == MapGenerator.TileType.City)
         {
             if (tileProperties == null || !(tileProperties is CityProperties))
             {

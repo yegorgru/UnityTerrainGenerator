@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,12 +49,11 @@ public class TileCity : Tile
         meshObject.transform.localPosition = position3;
         meshObject.transform.localRotation = Quaternion.identity;
 
-        // Scale the plane
         meshObject.transform.localScale = Vector3.one * sizeScale / 10f;
 
         meshObject.SetActive(true);
 
-        this.nonBuildingPrefabs = ReadPrefabs("Assets\\Prefabs\\NonBuildings");
+        this.nonBuildingPrefabs = Utils.ReadPrefabs("Assets\\Prefabs\\NonBuildings");
     }
 
     private void PlaceRoadItems()
@@ -188,19 +186,6 @@ public class TileCity : Tile
                 }
             }
         }
-    }
-
-    private GameObject[] ReadPrefabs(String path)
-    {
-        string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { path });
-        GameObject[] objects = new GameObject[guids.Length];
-        int objCounter = 0;
-        foreach (string guid in guids)
-        {
-            string guidPath = AssetDatabase.GUIDToAssetPath(guid);
-            objects[objCounter++] = AssetDatabase.LoadAssetAtPath(guidPath, typeof(GameObject)) as GameObject;
-        }
-        return objects;
     }
 
     private RoadItem[,] GenerateRoadMap(int width, int length)

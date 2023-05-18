@@ -58,28 +58,15 @@ public class Building : MonoBehaviour
 
     public void ReadPrefabs()
     {
-        wallPrefabs = ReadPrefabs(prefabsPath + "\\Walls");
-        windowPrefabs = ReadPrefabs(prefabsPath + "\\Windows");
-        roofPrefabs = ReadPrefabs(prefabsPath + "\\Roofs");
-        doorPrefabs = ReadPrefabs(prefabsPath + "\\Doors");
+        wallPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Walls");
+        windowPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Windows");
+        roofPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Roofs");
+        doorPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Doors");
         defaultRoofPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabsPath + "\\Roofs\\Default.prefab");
         if(defaultRoofPrefab == null)
         {
             throw new Exception("Roofs folder must contain Default.prefab");
         }
-    }
-
-    private GameObject[] ReadPrefabs(String path)
-    {
-        string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { path });
-        GameObject[] objects = new GameObject[guids.Length];
-        int objCounter = 0;
-        foreach (string guid in guids)
-        {
-            string guidPath = AssetDatabase.GUIDToAssetPath(guid);
-            objects[objCounter++] = AssetDatabase.LoadAssetAtPath(guidPath, typeof(GameObject)) as GameObject;
-        }
-        return objects;
     }
 
     public void Generate()
@@ -199,7 +186,8 @@ public class Building : MonoBehaviour
                 {
                     if(i == 0 || j == 0 || i == width - 1 || j == length - 1)
                     {
-                        if (i > 0 && floor.rooms[i - 1, j].roomType != Room.RoomType.Blank)
+                        continue;
+                        /*if (i > 0 && floor.rooms[i - 1, j].roomType != Room.RoomType.Blank)
                         {
                             floor.rooms[i, j].walls[0].walType = Wall.WallType.Blank;
                         }
@@ -213,8 +201,10 @@ public class Building : MonoBehaviour
                         }
                         if (j < length - 1 && floor.rooms[i, j + 1].roomType != Room.RoomType.Blank)
                         {
-                            floor.rooms[i, j].walls[1].walType = Wall.WallType.Blank;
-                        }
+                            Room room = floor.rooms[i, j];
+                            Wall wall = room.walls[1];
+                            wall.walType = Wall.WallType.Blank;
+                        }*/
                     }
                     else if (!(floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank
                         || floor.rooms[i, j - 1].roomType == Room.RoomType.Blank || floor.rooms[i, j + 1].roomType == Room.RoomType.Blank
@@ -268,9 +258,6 @@ public class Building : MonoBehaviour
                         wall.transform.localScale = wall.transform.localScale * cellUnitSize / 2f;
                     }
 
-                    // var roomFloor = Instantiate(floorPrefabs[UnityEngine.Random.Range(0, floorPrefabs.Length)], new Vector3(room.position.x * cellUnitSize, (floor.FloorNumber) * cellUnitSize, room.position.y * cellUnitSize), Quaternion.Euler(-90, 270, 0), transform);
-                    // roomFloor.transform.localScale = roomFloor.transform.localScale * cellUnitSize / 2f;
-
                     if (room.roofType != Room.RoofType.None)
                     {
                         GameObject roofObj = room.roofType == Room.RoofType.Random ? roofPrefabs[UnityEngine.Random.Range(0, roofPrefabs.Length)] : defaultRoofPrefab;
@@ -282,7 +269,7 @@ public class Building : MonoBehaviour
                 }
             }
         }
-        MergeChildMeshesByMaterialColor();
+        Utils.MergeChildMeshesByMaterialColor(gameObject);
     }
 
     public void Clear()
@@ -290,81 +277,8 @@ public class Building : MonoBehaviour
         while (transform.childCount > 0)
         {
             Transform child = transform.GetChild(0);
-            GameObject.DestroyImmediate(child.gameObject);
+            DestroyImmediate(child.gameObject);
         }
-    }
-
-    public int maxVerticesPerObject = 65536;
-    public void MergeChildMeshesByMaterialColor()
-    {
-        MeshFilter[] childMeshFilters = gameObject.GetComponentsInChildren<MeshFilter>(true);
-
-        // Group child meshes by material color
-        Dictionary<Color, List<MeshFilter>> meshGroups = new Dictionary<Color, List<MeshFilter>>();
-        foreach (MeshFilter childMeshFilter in childMeshFilters)
-        {
-            Material meshMaterial = childMeshFilter.GetComponent<MeshRenderer>().sharedMaterial;
-            Color materialColor = meshMaterial.color;
-
-            if (!meshGroups.ContainsKey(materialColor))
-            {
-                meshGroups[materialColor] = new List<MeshFilter>();
-            }
-            meshGroups[materialColor].Add(childMeshFilter);
-        }
-
-        // Merge meshes for each group
-        foreach (var group in meshGroups)
-        {
-            int totalVertices = 0;
-            List<MeshFilter> meshes = group.Value;
-
-            List<CombineInstance> combineInstances = new List<CombineInstance>();
-            for (int i = 0; i < meshes.Count; i++)
-            {
-                MeshFilter meshFilter = meshes[i];
-                int meshVertices = meshFilter.sharedMesh.vertexCount;
-
-                if (totalVertices + meshVertices > maxVerticesPerObject)
-                {
-                    CreateMergedObject(combineInstances, meshes[0].GetComponent<MeshRenderer>().sharedMaterial);
-                    combineInstances.Clear();
-                    totalVertices = 0;
-                }
-
-                CombineInstance combineInstance = new CombineInstance();
-                combineInstance.mesh = meshFilter.sharedMesh;
-                combineInstance.transform = meshFilter.transform.localToWorldMatrix;
-                combineInstances.Add(combineInstance);
-                meshFilter.gameObject.SetActive(false);
-
-                totalVertices += meshVertices;
-            }
-
-            CreateMergedObject(combineInstances, meshes[0].GetComponent<MeshRenderer>().sharedMaterial);
-        }
-    }
-
-    private void CreateMergedObject(List<CombineInstance> combineInstances, Material material)
-    {
-        if(combineInstances.Count == 0)
-        {
-            return;
-        }
-        GameObject mergedObject = new GameObject("MergedObject");
-        mergedObject.transform.parent = gameObject.transform;
-        //mergedObject.transform.localPosition = Vector3.zero;
-        mergedObject.transform.localRotation = Quaternion.identity;
-        mergedObject.transform.localScale = Vector3.one;
-
-        MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();
-        MeshRenderer mergedMeshRenderer = mergedObject.AddComponent<MeshRenderer>();
-        mergedMeshRenderer.material = material;
-
-        mergedMeshFilter.sharedMesh = new Mesh();
-        mergedMeshFilter.sharedMesh.CombineMeshes(combineInstances.ToArray(), true, true);
-
-        mergedObject.SetActive(true);
     }
 }
 

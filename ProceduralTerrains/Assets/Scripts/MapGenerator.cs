@@ -15,8 +15,11 @@ public class MapGenerator : MonoBehaviour
 
     public int lengthOfRegion = 5;
 
-    public GeneratorPerlinNoise generatorPerlinNoise = new GeneratorPerlinNoise();
-    public GeneratorCity generatorCity = new GeneratorCity();
+    public enum TileType
+    {
+        PerlinNoiseTableland,
+        City
+    }
 
     public void GenerateChunks()
     {
@@ -28,7 +31,7 @@ public class MapGenerator : MonoBehaviour
             for (int x = 0; x < widthOfRegion; x++)
             {
                 Vector2 coordinates = new Vector2(x, y);
-                Tile tile = generatorPerlinNoise.GeneratePerlinNoiseTile(coordinates, noiseData, terrainData, regionsData, widthOfRegion, lengthOfRegion, transform);
+                Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, widthOfRegion, lengthOfRegion, transform);
                 AddChunk(coordinates, tile);
             }
         }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -23,7 +19,7 @@ public class PerlinNoiseProperties : TileProperties
         Vector2 coordinates = new Vector2(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = mapGenerator.generatorPerlinNoise.GeneratePerlinNoiseTile(coordinates, noiseData, terrainData, regionsData, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform);
+            Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }
