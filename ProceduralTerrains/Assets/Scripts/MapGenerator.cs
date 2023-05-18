@@ -23,7 +23,6 @@ public class MapGenerator : MonoBehaviour
         NoiseData noiseData = AssetDatabase.LoadAssetAtPath<NoiseData>("Assets\\TerrainAssets\\DefaultNoise.asset");
         TerrainData terrainData = AssetDatabase.LoadAssetAtPath<TerrainData>("Assets\\TerrainAssets\\DefaultTerrain.asset");
         RegionsData regionsData = AssetDatabase.LoadAssetAtPath<RegionsData>("Assets\\TerrainAssets\\DefaultRegions.asset");
-        Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets\\Materials\\DefaultMaterial.mat");
         for (int y = 0; y < lengthOfRegion; y++)
         {
             for (int x = 0; x < widthOfRegion; x++)

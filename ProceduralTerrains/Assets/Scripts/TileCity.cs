@@ -9,14 +9,14 @@ public class TileCity : Tile
     public Vector2 position;
     RoadItem[,] roadItems;
 
-    static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform)
+    static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform, Color sidewalkColor)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
-        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f);
+        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f, sidewalkColor);
         chunk.PlaceRoadItems();
         chunk.GenerateMap();
 
@@ -24,12 +24,16 @@ public class TileCity : Tile
         return chunk;
     }
 
-    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale)
+    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale, Color sidewalkColor)
     {
         Vector3 position3 = new Vector3(coord.x, 0, coord.y) * sizeScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
         meshObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
         meshObject.name = "City Tile";
+        MeshRenderer planeMeshRenderer = meshObject.GetComponent<MeshRenderer>();
+        Material planeMaterial = new Material(Shader.Find("Standard"));
+        planeMaterial.color = sidewalkColor;
+        planeMeshRenderer.sharedMaterial = planeMaterial;
 
         meshObject.transform.parent = parent;
 
@@ -114,7 +118,7 @@ public class TileCity : Tile
                 {
                     GameObject buildingObj = new GameObject();
                     Building building = buildingObj.AddComponent<Building>();
-                    building.Initialize(Building.FloorSizePolicy.Constant, "Assets/Prefabs/Simplified", 1, 1, 5, 0.75f, 2f);
+                    building.Initialize(Building.FloorSizePolicy.Constant, "Assets/Prefabs/MiddleDetailed", 1, 1, 5, 0.75f, 2f);
                     building.ReadPrefabs();
                     building.Generate();
                     building.Render();
