@@ -11,15 +11,18 @@ public class TileCity : Tile
     CityItem[,] cityItems;
     float buildingChance;
     int maxFloor;
+    Building.FloorSizePolicy floorSizePolicy;
 
-    static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform, Color sidewalkColor, float buildingChance, int maxFloor)
+    private GameObject[] nonBuildingPrefabs;
+
+    static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform, Color sidewalkColor, float buildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
-        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f, sidewalkColor, buildingChance, maxFloor);
+        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f, sidewalkColor, buildingChance, maxFloor, floorSizePolicy);
         chunk.PlaceRoadItems();
         chunk.GenerateMap();
         chunk.Render();
@@ -27,10 +30,11 @@ public class TileCity : Tile
         return chunk;
     }
 
-    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale, Color sidewalkColor, float buildingChance, int maxFloor)
+    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale, Color sidewalkColor, float buildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
     {
         this.buildingChance = buildingChance;
         this.maxFloor = maxFloor;
+        this.floorSizePolicy = floorSizePolicy;
 
         Vector3 position3 = new Vector3(coord.x, 0, coord.y) * sizeScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
@@ -50,6 +54,8 @@ public class TileCity : Tile
         meshObject.transform.localScale = Vector3.one * sizeScale / 10f;
 
         meshObject.SetActive(true);
+
+        this.nonBuildingPrefabs = ReadPrefabs("Assets\\Prefabs\\NonBuildings");
     }
 
     private void PlaceRoadItems()
@@ -167,15 +173,34 @@ public class TileCity : Tile
                     }
                     GameObject buildingObj = new GameObject();
                     Building building = buildingObj.AddComponent<Building>();
-                    building.Initialize(Building.FloorSizePolicy.Constant, "Assets/Prefabs/MiddleDetailed", endI - i + 1, endJ - j + 1, UnityEngine.Random.Range(1, maxFloor + 1), 0.75f, 2f);
+                    building.Initialize(floorSizePolicy, "Assets/Prefabs/MiddleDetailed", endI - i + 1, endJ - j + 1, UnityEngine.Random.Range(1, maxFloor + 1), 0.75f, 2f);
                     building.ReadPrefabs();
                     building.Generate();
                     building.Render();
                     buildingObj.transform.parent = meshObject.transform;
                     buildingObj.transform.localPosition = new Vector3(0.2f * (endI + i) / 2f - 4.9f, 0, 0.2f * (endJ + j) / 2f - 4.9f);
                 }
+                else if (cityItems[j, i] == CityItem.NonBuilding) {
+                    GameObject gameObject = nonBuildingPrefabs[UnityEngine.Random.Range(0, nonBuildingPrefabs.Length)];
+                    var obj = GameObject.Instantiate(gameObject, Vector3.zero, Quaternion.identity, meshObject.transform);
+                    obj.transform.localPosition = new Vector3(-4.9f + 0.2f * i, 0, -4.9f + 0.2f * j);
+                    obj.transform.localScale = Vector3.one * 0.125f;
+                }
             }
         }
+    }
+
+    private GameObject[] ReadPrefabs(String path)
+    {
+        string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { path });
+        GameObject[] objects = new GameObject[guids.Length];
+        int objCounter = 0;
+        foreach (string guid in guids)
+        {
+            string guidPath = AssetDatabase.GUIDToAssetPath(guid);
+            objects[objCounter++] = AssetDatabase.LoadAssetAtPath(guidPath, typeof(GameObject)) as GameObject;
+        }
+        return objects;
     }
 
     private RoadItem[,] GenerateRoadMap(int width, int length)
