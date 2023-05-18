@@ -272,6 +272,7 @@ public class Building : MonoBehaviour
         }
     }
 
+    public int maxVerticesPerObject = 65536;
     public void MergeChildMeshesByMaterialColor()
     {
         MeshFilter[] childMeshFilters = gameObject.GetComponentsInChildren<MeshFilter>(true);
@@ -293,33 +294,55 @@ public class Building : MonoBehaviour
         // Merge meshes for each group
         foreach (var group in meshGroups)
         {
-            Color groupColor = group.Key;
+            int totalVertices = 0;
             List<MeshFilter> meshes = group.Value;
 
-            CombineInstance[] combineInstances = new CombineInstance[meshes.Count];
+            List<CombineInstance> combineInstances = new List<CombineInstance>();
             for (int i = 0; i < meshes.Count; i++)
             {
                 MeshFilter meshFilter = meshes[i];
-                combineInstances[i].mesh = meshFilter.sharedMesh;
-                combineInstances[i].transform = meshFilter.transform.localToWorldMatrix;
+                int meshVertices = meshFilter.sharedMesh.vertexCount;
+
+                if (totalVertices + meshVertices > maxVerticesPerObject)
+                {
+                    CreateMergedObject(combineInstances, meshes[0].GetComponent<MeshRenderer>().sharedMaterial);
+                    combineInstances.Clear();
+                    totalVertices = 0;
+                }
+
+                CombineInstance combineInstance = new CombineInstance();
+                combineInstance.mesh = meshFilter.sharedMesh;
+                combineInstance.transform = meshFilter.transform.localToWorldMatrix;
+                combineInstances.Add(combineInstance);
                 meshFilter.gameObject.SetActive(false);
+
+                totalVertices += meshVertices;
             }
 
-            GameObject mergedObject = new GameObject("MergedObject");
-            mergedObject.transform.parent = gameObject.transform;
-            //mergedObject.transform.localPosition = Vector3.zero;
-            mergedObject.transform.localRotation = Quaternion.identity;
-            mergedObject.transform.localScale = Vector3.one;
-
-            MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();
-            MeshRenderer mergedMeshRenderer = mergedObject.AddComponent<MeshRenderer>();
-            mergedMeshRenderer.material = meshes[0].GetComponent<MeshRenderer>().sharedMaterial;
-
-            mergedMeshFilter.sharedMesh = new Mesh();
-            mergedMeshFilter.sharedMesh.CombineMeshes(combineInstances, true, true);
-
-            mergedObject.SetActive(true);
+            CreateMergedObject(combineInstances, meshes[0].GetComponent<MeshRenderer>().sharedMaterial);
         }
+    }
+
+    private void CreateMergedObject(List<CombineInstance> combineInstances, Material material)
+    {
+        if(combineInstances.Count == 0)
+        {
+            return;
+        }
+        GameObject mergedObject = new GameObject("MergedObject");
+        mergedObject.transform.parent = gameObject.transform;
+        //mergedObject.transform.localPosition = Vector3.zero;
+        mergedObject.transform.localRotation = Quaternion.identity;
+        mergedObject.transform.localScale = Vector3.one;
+
+        MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();
+        MeshRenderer mergedMeshRenderer = mergedObject.AddComponent<MeshRenderer>();
+        mergedMeshRenderer.material = material;
+
+        mergedMeshFilter.sharedMesh = new Mesh();
+        mergedMeshFilter.sharedMesh.CombineMeshes(combineInstances.ToArray(), true, true);
+
+        mergedObject.SetActive(true);
     }
 }
 

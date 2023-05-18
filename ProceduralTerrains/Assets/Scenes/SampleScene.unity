@@ -168,13 +168,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   floorSizePolicy: 0
-  prefabsPath: Assets/Prefabs/Simplified
-  width: 7
-  length: 7
+  prefabsPath: Assets/Prefabs
+  width: 10
+  length: 10
   cellUnitSize: 1
   numberOfFloors: 7
   windowChance: 0.7
---- !u!1 &1101923196
+  maxVerticesPerObject: 65536
+--- !u!1 &753566182
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -182,37 +183,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1101923199}
-  - component: {fileID: 1101923198}
+  - component: {fileID: 753566183}
+  - component: {fileID: 753566184}
   m_Layer: 0
-  m_Name: Map Generator
+  m_Name: MapGenerator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1101923198
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1101923196}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 313e06aac31ed8740a6c168a14ba07ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  autoUpdate: 0
-  widthOfRegion: 4
-  lengthOfRegion: 4
---- !u!4 &1101923199
+--- !u!4 &753566183
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1101923196}
+  m_GameObject: {fileID: 753566182}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -221,3 +207,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &753566184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 753566182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 313e06aac31ed8740a6c168a14ba07ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoUpdate: 0
+  widthOfRegion: 5
+  lengthOfRegion: 5
