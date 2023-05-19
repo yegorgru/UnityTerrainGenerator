@@ -177,17 +177,16 @@ public class Building : MonoBehaviour
 
     private void Optimize()
     {
-        for (int f = 0; f < floors.Length - 1; ++f)
+        for (int f = 0; f < floors.Length; ++f)
         {
             Floor floor = floors[f];
             for (int i = 0; i < width; ++i)
             {
                 for (int j = 0; j < length; ++j)
                 {
-                    if(i == 0 || j == 0 || i == width - 1 || j == length - 1)
+                    if(floor.rooms[i, j].roomType == Room.RoomType.Normal)
                     {
-                        continue;
-                        /*if (i > 0 && floor.rooms[i - 1, j].roomType != Room.RoomType.Blank)
+                        if (i > 0 && floor.rooms[i - 1, j].roomType != Room.RoomType.Blank)
                         {
                             floor.rooms[i, j].walls[0].walType = Wall.WallType.Blank;
                         }
@@ -204,10 +203,10 @@ public class Building : MonoBehaviour
                             Room room = floor.rooms[i, j];
                             Wall wall = room.walls[1];
                             wall.walType = Wall.WallType.Blank;
-                        }*/
+                        }
                     }
-                    else if (!(floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank
-                        || floor.rooms[i, j - 1].roomType == Room.RoomType.Blank || floor.rooms[i, j + 1].roomType == Room.RoomType.Blank
+                    if (!(f == floors.Length - 1 || i == 0 || floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || i == width - 1 || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank
+                        || j == 0 || floor.rooms[i, j - 1].roomType == Room.RoomType.Blank || j == length - 1 || floor.rooms[i, j + 1].roomType == Room.RoomType.Blank
                         || floors[f].rooms[i, j].roomType == Room.RoomType.Blank))
                     {
                         floor.rooms[i, j].roomType = Room.RoomType.Internal;

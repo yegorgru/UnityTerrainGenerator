@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class CityProperties : TileProperties
 {
-    public int width = 200;
     public float buildingChance = 0.5f;
+    public float nonBuildingChance = 0.5f;
     public int maxFloor = 10;
     public Color color = Color.white;
     public Building.FloorSizePolicy floorSizePolicy = Building.FloorSizePolicy.Constant;
 
     public override void DrawGUI()
     {
-        width = EditorGUILayout.IntField(width);
-        buildingChance = EditorGUILayout.FloatField(buildingChance);
+        buildingChance = EditorGUILayout.FloatField("Chance of building", buildingChance);
+        nonBuildingChance = EditorGUILayout.FloatField("Chance of non-building on free space", nonBuildingChance);
         maxFloor = EditorGUILayout.IntField(maxFloor);
         floorSizePolicy = (Building.FloorSizePolicy)EditorGUILayout.EnumPopup("Floor size policy", floorSizePolicy);
         color = EditorGUILayout.ColorField("Base color", color);
@@ -24,7 +24,7 @@ public class CityProperties : TileProperties
         Vector2 coordinates = new Vector2(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = TileCity.GenerateTile(coordinates, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform, color, buildingChance, maxFloor, floorSizePolicy);
+            Tile tile = TileCity.GenerateTile(coordinates, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform, color, buildingChance, nonBuildingChance, maxFloor, floorSizePolicy);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }

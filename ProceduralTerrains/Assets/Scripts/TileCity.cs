@@ -9,19 +9,20 @@ public class TileCity : Tile
     RoadItem[,] roadItems;
     CityItem[,] cityItems;
     float buildingChance;
+    float nonBuildingChance;
     int maxFloor;
     Building.FloorSizePolicy floorSizePolicy;
 
     private GameObject[] nonBuildingPrefabs;
 
-    static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform, Color sidewalkColor, float buildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
+    static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform, Color sidewalkColor, float buildingChance, float nonBuildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
-        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f, sidewalkColor, buildingChance, maxFloor, floorSizePolicy);
+        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f, sidewalkColor, buildingChance, nonBuildingChance, maxFloor, floorSizePolicy);
         chunk.PlaceRoadItems();
         chunk.GenerateMap();
         chunk.Render();
@@ -29,9 +30,10 @@ public class TileCity : Tile
         return chunk;
     }
 
-    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale, Color sidewalkColor, float buildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
+    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale, Color sidewalkColor, float buildingChance, float nonBuildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
     {
         this.buildingChance = buildingChance;
+        this.nonBuildingChance = nonBuildingChance;
         this.maxFloor = maxFloor;
         this.floorSizePolicy = floorSizePolicy;
 
@@ -143,6 +145,10 @@ public class TileCity : Tile
                 else
                 {
                     cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.Building : CityItem.NonBuilding;
+                }
+                if (cityItems[j, i] == CityItem.NonBuilding)
+                {
+                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < nonBuildingChance ? CityItem.NonBuilding : CityItem.None;
                 }
             }
         }
