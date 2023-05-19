@@ -19,7 +19,8 @@ public class Building : MonoBehaviour
     public enum FloorSizePolicy
     {
         Constant,
-        Decreasing
+        Decreasing,
+        Random
     }
 
     [SerializeField]
@@ -71,6 +72,10 @@ public class Building : MonoBehaviour
 
     public void Generate()
     {
+        if(floorSizePolicy == FloorSizePolicy.Random)
+        {
+            floorSizePolicy = UnityEngine.Random.Range(0f, 1f) < 0.5f ? FloorSizePolicy.Constant : FloorSizePolicy.Decreasing;
+        }
         int doorWallNumber = UnityEngine.Random.Range(0, length * 2 + width * 2);
         int findDoorCounter = 0;
 

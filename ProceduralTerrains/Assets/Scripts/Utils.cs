@@ -8,7 +8,7 @@ public static class Utils
 {
     public const int maxVerticesPerObject = 65536;
 
-    public static GameObject[] ReadPrefabs(String path)
+    public static GameObject[] ReadPrefabs(string path)
     {
         string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { path });
         GameObject[] objects = new GameObject[guids.Length];
@@ -25,7 +25,6 @@ public static class Utils
     {
         MeshFilter[] childMeshFilters = gameObject.GetComponentsInChildren<MeshFilter>(true);
 
-        // Group child meshes by material color
         Dictionary<Color, List<MeshFilter>> meshGroups = new Dictionary<Color, List<MeshFilter>>();
         foreach (MeshFilter childMeshFilter in childMeshFilters)
         {
@@ -78,9 +77,9 @@ public static class Utils
         }
         GameObject mergedObject = new GameObject("MergedObject");
         mergedObject.transform.parent = gameObject.transform;
-        mergedObject.transform.localPosition = Vector3.zero;
-        mergedObject.transform.localRotation = Quaternion.identity;
-        mergedObject.transform.localScale = Vector3.one;
+        //mergedObject.transform.localPosition = Vector3.zero;
+        //mergedObject.transform.localRotation = Quaternion.identity;
+        //mergedObject.transform.localScale = Vector3.one;
 
         MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();
         MeshRenderer mergedMeshRenderer = mergedObject.AddComponent<MeshRenderer>();

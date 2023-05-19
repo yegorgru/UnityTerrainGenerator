@@ -14,6 +14,9 @@ public class TileCity : Tile
     Building.FloorSizePolicy floorSizePolicy;
 
     private GameObject[] nonBuildingPrefabs;
+    private GameObject nonBuildingsObj;
+    private GameObject buildingsObj;
+    private GameObject roadsObj;
 
     static public TileCity GenerateTile(Vector2 coordinates, int widthOfRegion, int lengthOfRegion, Transform transform, Color sidewalkColor, float buildingChance, float nonBuildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
     {
@@ -22,7 +25,7 @@ public class TileCity : Tile
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
-        TileCity chunk = new TileCity(viewedChunkCoord, 240, transform, 100f, sidewalkColor, buildingChance, nonBuildingChance, maxFloor, floorSizePolicy);
+        TileCity chunk = new TileCity(viewedChunkCoord, transform, 100f, sidewalkColor, buildingChance, nonBuildingChance, maxFloor, floorSizePolicy);
         chunk.PlaceRoadItems();
         chunk.GenerateMap();
         chunk.Render();
@@ -30,7 +33,7 @@ public class TileCity : Tile
         return chunk;
     }
 
-    private TileCity(Vector2 coord, int size, Transform parent, float sizeScale, Color sidewalkColor, float buildingChance, float nonBuildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
+    private TileCity(Vector2 coord, Transform parent, float sizeScale, Color sidewalkColor, float buildingChance, float nonBuildingChance, int maxFloor, Building.FloorSizePolicy floorSizePolicy)
     {
         this.buildingChance = buildingChance;
         this.nonBuildingChance = nonBuildingChance;
@@ -50,30 +53,44 @@ public class TileCity : Tile
 
         meshObject.transform.localPosition = position3;
         meshObject.transform.localRotation = Quaternion.identity;
+        meshObject.transform.localScale = Vector3.one;
 
         meshObject.transform.localScale = Vector3.one * sizeScale / 10f;
 
         meshObject.SetActive(true);
 
-        this.nonBuildingPrefabs = Utils.ReadPrefabs("Assets\\Prefabs\\NonBuildings");
+        nonBuildingPrefabs = Utils.ReadPrefabs("Assets\\Prefabs\\NonBuildings");
+
+        nonBuildingsObj = new GameObject("Non-buildings object");
+        nonBuildingsObj.transform.parent = meshObject.transform;
+        nonBuildingsObj.transform.localPosition = Vector3.zero;
+
+        buildingsObj = new GameObject("Buildings object");
+        buildingsObj.transform.parent = meshObject.transform;
+        buildingsObj.transform.localPosition = Vector3.zero;
+
+        roadsObj = new GameObject("Roads object");
+        roadsObj.transform.parent = meshObject.transform;
+        roadsObj.transform.localPosition = Vector3.zero;
     }
 
     private void PlaceRoadItems()
     {
         roadItems = GenerateRoadMap(10, 10);
-        float offset = -4.5f;
+        float offset = -45f;
         for (int i = 0; i < roadItems.GetLength(0); ++i)
         {
             for (int j = 0; j < roadItems.GetLength(1); ++j)
             {
-                GameObject road = InstantiateRoadItem(roadItems[j, i], "Assets\\Prefabs\\Roads", meshObject.transform);
+                GameObject road = InstantiateRoadItem(roadItems[j, i], "Assets\\Prefabs\\Roads", roadsObj.transform);
                 if (road != null)
                 {
-                    road.transform.localPosition = new Vector3(i + offset, 0, j + offset);
-                    road.transform.localScale = Vector3.one * 0.5f;
+                    road.transform.localPosition = new Vector3(10 * i + offset, 0, 10 * j + offset);
+                    road.transform.localScale = Vector3.one * 5f;
                 }
             }
         }
+        Utils.MergeChildMeshesByMaterialColor(roadsObj);
     }
 
     public enum CityItem
@@ -129,24 +146,61 @@ public class TileCity : Tile
                 }
             }
         }
-        for(int i = 0; i < cityItems.GetLength(0); ++i)
+        for(int i = 0; i < cityItems.GetLength(1); ++i)
         {
-            for (int j = 0; j < cityItems.GetLength(1); ++j)
+            for (int j = 0; j < cityItems.GetLength(0); ++j)
             {
                 if (cityItems[j, i] == CityItem.Road)
                 {
                     continue;
                 }
-                if (j > 0 && i > 0 && cityItems[j - 1, i - 1] == CityItem.Building || j > 0 && i < cityItems.GetLength(0) - 1 && cityItems[j - 1, i + 1] == CityItem.Building ||
-                    j < cityItems.GetLength(1) - 1 && i > 0 && cityItems[j + 1, i - 1] == CityItem.Building || j < cityItems.GetLength(1) - 1 && i < cityItems.GetLength(0) - 1 && cityItems[j + 1, i + 1] == CityItem.Building)
+                if(i > 0 && cityItems[j, i - 1] == CityItem.Building)
                 {
-                    cityItems[j, i] = CityItem.NonBuilding;
+                    if(j > 0 && cityItems[j - 1, i - 1] == CityItem.Building)
+                    {
+                        cityItems[j, i] = cityItems[j - 1, i] == CityItem.Building ? CityItem.Building : CityItem.None;
+                    }
+                    else // j > 0 && cityItems[j - 1, i - 1] != CityItem.Building || j == 0
+                    {
+                        int lengthIt = j;
+                        while (lengthIt < cityItems.GetLength(0) && cityItems[lengthIt, i - 1] == CityItem.Building)
+                        {
+                            ++lengthIt;
+                        }
+                        bool foundRoad = false;
+                        for (int k = j; k < lengthIt; ++k)
+                        {
+                            if (cityItems[k, i] == CityItem.Road) {
+                                foundRoad = true;
+                                break;
+                            }
+                        }
+                        if(foundRoad)
+                        {
+                            cityItems[j, i] = CityItem.None;
+                        }
+                        else
+                        {
+                            cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.Building : CityItem.None;
+                        }
+                    }
                 }
-                else
+                else if(i > 0 && cityItems[j, i - 1] != CityItem.Building)
                 {
-                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.Building : CityItem.NonBuilding;
+                    if (j < cityItems.GetLength(0) - 1 && cityItems[j + 1, i - 1] == CityItem.Building || j > 0 && cityItems[j - 1, i - 1] == CityItem.Building)
+                    {
+                        cityItems[j, i] = CityItem.None;
+                    }
+                    else
+                    {
+                        cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.Building : CityItem.None;
+                    }
                 }
-                if (cityItems[j, i] == CityItem.NonBuilding)
+                else // i == 0
+                {
+                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.Building : CityItem.None;
+                }
+                if (cityItems[j, i] == CityItem.None)
                 {
                     cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < nonBuildingChance ? CityItem.NonBuilding : CityItem.None;
                 }
@@ -181,17 +235,19 @@ public class TileCity : Tile
                     building.ReadPrefabs();
                     building.Generate();
                     building.Render();
-                    buildingObj.transform.parent = meshObject.transform;
-                    buildingObj.transform.localPosition = new Vector3(0.2f * (endI + i) / 2f - 4.9f, 0, 0.2f * (endJ + j) / 2f - 4.9f);
+                    buildingObj.transform.parent = buildingsObj.transform;
+                    buildingObj.transform.localPosition = new Vector3(2f * (endI + i) / 2f - 49f, 0, 2f * (endJ + j) / 2f - 49f);
                 }
                 else if (cityItems[j, i] == CityItem.NonBuilding) {
                     GameObject gameObject = nonBuildingPrefabs[UnityEngine.Random.Range(0, nonBuildingPrefabs.Length)];
-                    var obj = GameObject.Instantiate(gameObject, Vector3.zero, Quaternion.identity, meshObject.transform);
-                    obj.transform.localPosition = new Vector3(-4.9f + 0.2f * i, 0, -4.9f + 0.2f * j);
-                    obj.transform.localScale = Vector3.one * 0.125f;
+                    var obj = GameObject.Instantiate(gameObject, Vector3.zero, Quaternion.identity, nonBuildingsObj.transform);
+                    obj.transform.localPosition = new Vector3(2f * i - 49, 0, 2f * j - 49);
+                    //obj.transform.localScale = Vector3.one * 0.125f;
                 }
             }
         }
+        Utils.MergeChildMeshesByMaterialColor(buildingsObj);
+        Utils.MergeChildMeshesByMaterialColor(nonBuildingsObj);
     }
 
     private RoadItem[,] GenerateRoadMap(int width, int length)

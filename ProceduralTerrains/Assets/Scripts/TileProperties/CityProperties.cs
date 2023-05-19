@@ -14,7 +14,7 @@ public class CityProperties : TileProperties
     {
         buildingChance = EditorGUILayout.FloatField("Chance of building", buildingChance);
         nonBuildingChance = EditorGUILayout.FloatField("Chance of non-building on free space", nonBuildingChance);
-        maxFloor = EditorGUILayout.IntField(maxFloor);
+        maxFloor = EditorGUILayout.IntField("Max number of floors", maxFloor);
         floorSizePolicy = (Building.FloorSizePolicy)EditorGUILayout.EnumPopup("Floor size policy", floorSizePolicy);
         color = EditorGUILayout.ColorField("Base color", color);
     }
