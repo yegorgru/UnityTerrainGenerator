@@ -1,24 +1,95 @@
-﻿using System.Collections.Generic;
-using Unity.VisualScripting;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using static TileCity;
 
 public class MapGenerator : MonoBehaviour
 {
     public bool autoUpdate;
 
-    public Dictionary<Vector2, Tile> terrainChunkDictionary = new Dictionary<Vector2, Tile>();
-
     public int widthOfRegion = 5;
 
     public int lengthOfRegion = 5;
+
+    public int cityFrequency = DEFAULT_CITY_FREQUENCY;
+
+    public float buildingChance;
+
+    public float nonBuildingChance;
+
+    public int maxNumberOfFloors;
+
+    private bool cityMapGenerated = false;
+
+    private Dictionary<Vector2, Tile> terrainChunkDictionary = new Dictionary<Vector2, Tile>();
+
+    private RoadItem[,] roadItems;
+    private CityItem[,] cityItems;
 
     public enum TileType
     {
         PerlinNoiseTableland,
         City
+    }
+
+    public bool IsGenerated()
+    {
+        return cityMapGenerated;
+    }
+
+    private void OnValidate()
+    {
+        widthOfRegion = Math.Max(1, widthOfRegion);
+        lengthOfRegion = Math.Max(1, lengthOfRegion);
+        cityFrequency = Mathf.RoundToInt(cityFrequency / 5f) * 5;
+        cityFrequency = Math.Max(5, cityFrequency);
+        buildingChance = Mathf.Min(1, Mathf.Max(0, buildingChance));
+        nonBuildingChance = Mathf.Min(1, Mathf.Max(0, nonBuildingChance));
+        maxNumberOfFloors = Math.Min(50, Math.Max(1, maxNumberOfFloors));
+        cityMapGenerated = false;
+    }
+
+    public void GenerateCityMap()
+    {
+        roadItems = GenerateRoadMap(lengthOfRegion * cityFrequency / UNITS_PER_ROAD_ITEM, widthOfRegion * cityFrequency / UNITS_PER_ROAD_ITEM);
+        cityItems = GenerateCityItemsMap(roadItems, buildingChance, nonBuildingChance, maxNumberOfFloors);
+        cityMapGenerated = true;
+    }
+
+    public RoadItem[,] GetRoadItems() { 
+        return roadItems; 
+    }
+
+    public CityItem[,] GetCityItems()
+    {
+        return cityItems;
+    }
+
+    public int GetWidthOfRegion()
+    {
+        return widthOfRegion;
+    }
+
+    public int GetLengthOfRegion()
+    {
+        return lengthOfRegion;
+    }
+
+    public int GetCityFrequency()
+    {
+        return cityFrequency;
+    }
+
+    public float GetBuildingChance()
+    {
+        return buildingChance;
+    }
+
+    public float GetNonBuildingChance()
+    {
+        return nonBuildingChance;
     }
 
     public void GenerateChunks()
@@ -30,7 +101,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int x = 0; x < widthOfRegion; x++)
             {
-                Vector2 coordinates = new Vector2(x, y);
+                Vector2Int coordinates = new Vector2Int(x, y);
                 Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, widthOfRegion, lengthOfRegion, transform);
                 AddChunk(coordinates, tile);
             }
@@ -49,7 +120,7 @@ public class MapGenerator : MonoBehaviour
 
     public bool CheckPosition(Vector2 coordinates)
     {
-        if (coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y > lengthOfRegion || terrainChunkDictionary.ContainsKey(coordinates))
+        if (coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y >= lengthOfRegion || terrainChunkDictionary.ContainsKey(coordinates))
         {
             Debug.LogWarning("Incorrect tile coordinates");
             return false;
@@ -70,16 +141,6 @@ public class MapGenerator : MonoBehaviour
         }
         terrainChunkDictionary.Remove(coordinates);
     }
-}
 
-public struct MapData
-{
-    public readonly float[,] heightMap;
-    public readonly Color[] colorMap;
-
-    public MapData(float[,] heightMap, Color[] colorMap)
-    {
-        this.heightMap = heightMap;
-        this.colorMap = colorMap;
-    }
+    
 }

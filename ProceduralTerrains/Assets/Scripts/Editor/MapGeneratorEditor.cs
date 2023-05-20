@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using static MapGenerator;
+using System;
 
 [CustomEditor(typeof(MapGenerator))]  
 public class MapGeneratorEditor : Editor
@@ -22,10 +24,11 @@ public class MapGeneratorEditor : Editor
         }
         if (GUILayout.Button("Generate"))
         {
-            GenerateTilesWindow window = GenerateTilesWindow.CreateGenerateTilesWindow(mapGen);
-            window.Show();
+            mapGen.GenerateCityMap();
+            //GenerateTilesWindow window = GenerateTilesWindow.CreateGenerateTilesWindow(mapGen);
+            //window.Show();
         }
-        if (GUILayout.Button("Add item"))
+        if (mapGen.IsGenerated() && GUILayout.Button("Add item"))
         {
             TileWindow window = TileWindow.CreateTileWindow(mapGen);
             window.Show();

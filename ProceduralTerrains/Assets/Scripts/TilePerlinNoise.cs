@@ -15,7 +15,7 @@ public class TilePerlinNoise : Tile
 
     private const int mapChunkSize = 241;
 
-    public static TilePerlinNoise GenerateTile(Vector2 coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform)
+    public static TilePerlinNoise GenerateTile(Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
@@ -28,7 +28,7 @@ public class TilePerlinNoise : Tile
         return chunk;
     }
 
-    public static MapData GenerateMapData(Vector2 center, NoiseData noiseData, RegionsData regionsData)
+    public static PerlinNoiseMapData GenerateMapData(Vector2 center, NoiseData noiseData, RegionsData regionsData)
     {
         float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode);
 
@@ -49,7 +49,7 @@ public class TilePerlinNoise : Tile
             }
         }
 
-        return new MapData(noiseMap, colourMap);
+        return new PerlinNoiseMapData(noiseMap, colourMap);
     }
 
     public TilePerlinNoise(Vector2 coord, Transform parent, Material material, TerrainData terrainData, float sizeScale)
@@ -71,7 +71,7 @@ public class TilePerlinNoise : Tile
         meshObject.SetActive(true);
     }
 
-    public void CreateMesh(MapData mapData)
+    public void CreateMesh(PerlinNoiseMapData mapData)
     {
         Texture2D texture = TextureGenerator.TextureFromColourMap(mapData.colorMap, mapChunkSize, mapChunkSize);
         Material material = GameObject.Instantiate(meshRenderer.sharedMaterial);
@@ -82,5 +82,17 @@ public class TilePerlinNoise : Tile
         Mesh mesh = meshData.CreateMesh();
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
+    }
+}
+
+public struct PerlinNoiseMapData
+{
+    public readonly float[,] heightMap;
+    public readonly Color[] colorMap;
+
+    public PerlinNoiseMapData(float[,] heightMap, Color[] colorMap)
+    {
+        this.heightMap = heightMap;
+        this.colorMap = colorMap;
     }
 }

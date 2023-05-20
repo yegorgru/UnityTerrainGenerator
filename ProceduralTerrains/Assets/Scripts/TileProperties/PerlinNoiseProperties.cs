@@ -14,12 +14,12 @@ public class PerlinNoiseProperties : TileProperties
         regionsData = (RegionsData)EditorGUILayout.ObjectField("Regions Data", regionsData, typeof(RegionsData), false);
     }
 
-    public override void CreateTile(MapGenerator mapGenerator, float xCoord, float yCoord)
+    public override void CreateTile(MapGenerator mapGenerator, int xCoord, int yCoord)
     {
-        Vector2 coordinates = new Vector2(xCoord, yCoord);
+        Vector2Int coordinates = new Vector2Int(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, mapGenerator.widthOfRegion, mapGenerator.lengthOfRegion, mapGenerator.transform);
+            Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }

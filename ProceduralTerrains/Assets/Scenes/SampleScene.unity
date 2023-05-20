@@ -220,4 +220,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoUpdate: 0
   widthOfRegion: 5
-  lengthOfRegion: 5
+  lengthOfRegion: 1
+  cityFrequency: 10
+  buildingChance: 0.5
+  nonBuildingChance: 0.5
+  maxNumberOfFloors: 10
