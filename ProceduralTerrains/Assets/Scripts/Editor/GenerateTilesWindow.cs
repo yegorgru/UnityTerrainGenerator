@@ -22,7 +22,7 @@ public class GenerateTilesWindow : EditorWindow
 
         if (GUILayout.Button("Generate Tiles"))
         {
-            mapGenerator.GenerateChunks();
+            //mapGenerator.GenerateChunks();
             Close();
         }
     }

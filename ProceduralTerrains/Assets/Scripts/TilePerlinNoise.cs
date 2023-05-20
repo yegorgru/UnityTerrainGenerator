@@ -15,7 +15,7 @@ public class TilePerlinNoise : Tile
 
     private const int mapChunkSize = 241;
 
-    public static TilePerlinNoise GenerateTile(Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform)
+    public static TilePerlinNoise GenerateTile(Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform, bool upDescent, bool downDescent, bool leftDescent, bool rightDescent)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
@@ -24,13 +24,13 @@ public class TilePerlinNoise : Tile
         Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets\\Materials\\DefaultMaterial.mat");
 
         TilePerlinNoise chunk = new TilePerlinNoise(viewedChunkCoord, transform, material, terrainData, 100f);
-        chunk.CreateMesh(GenerateMapData(chunk.position, noiseData, regionsData));
+        chunk.CreateMesh(GenerateMapData(chunk.position, noiseData, regionsData, upDescent, downDescent, leftDescent, rightDescent));
         return chunk;
     }
 
-    public static PerlinNoiseMapData GenerateMapData(Vector2 center, NoiseData noiseData, RegionsData regionsData)
+    public static PerlinNoiseMapData GenerateMapData(Vector2 center, NoiseData noiseData, RegionsData regionsData, bool upDescent, bool downDescent, bool leftDescent, bool rightDescent)
     {
-        float[,] noiseMap = Noise.generateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode);
+        float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, noiseData.seed, noiseData.noiseScale, noiseData.numberOctaves, noiseData.persistance, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizeMode, upDescent, downDescent, leftDescent, rightDescent);
 
         Color[] colourMap = new Color[mapChunkSize * mapChunkSize];
         for (int y = 0; y < mapChunkSize; y++)

@@ -219,9 +219,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   autoUpdate: 0
-  widthOfRegion: 5
-  lengthOfRegion: 1
-  cityFrequency: 10
+  widthOfRegion: 2
+  lengthOfRegion: 3
+  cityFrequency: 50
   buildingChance: 0.5
   nonBuildingChance: 0.5
   maxNumberOfFloors: 10

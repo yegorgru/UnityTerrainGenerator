@@ -101,9 +101,9 @@ public class MapGenerator : MonoBehaviour
         {
             for (int x = 0; x < widthOfRegion; x++)
             {
-                Vector2Int coordinates = new Vector2Int(x, y);
+                /*Vector2Int coordinates = new Vector2Int(x, y);
                 Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, widthOfRegion, lengthOfRegion, transform);
-                AddChunk(coordinates, tile);
+                AddChunk(coordinates, tile);*/
             }
         }
     }

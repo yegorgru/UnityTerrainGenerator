@@ -9,7 +9,7 @@ public static class Noise
         Global
     }
 
-    public static float[,] generateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset, NormalizeMode normalizeMode)
+    public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset, NormalizeMode normalizeMode, bool upDescent, bool downDescent, bool leftDescent, bool rightDescent)
     {
         if (scale <= 0)
         {
@@ -79,10 +79,39 @@ public static class Noise
                     //noiseMap[x, y] = Mathf.InverseLerp(0, maxPossibleHeight / 2, noiseMap[x, y]);
                     float normalizedHeight = (noiseMap[x, y] + 1) / 2f * maxPossibleHeight / 1.25f;
                     noiseMap[x, y] = normalizedHeight;
+
+                    //Apply descent
+                    if(x <= mapWidth / 5 && leftDescent)
+                    {
+                        // Closer to left
+                        noiseMap[x, y] = Mathf.Min(noiseMap[x, y], (float)x / (mapWidth / 5));
+                    }
+                    if(x >= mapWidth * 4 / 5 && rightDescent)
+                    {
+                        // Closer to right
+                        noiseMap[x, y] = Mathf.Min(noiseMap[x, y], (float)(mapWidth - x) / (mapWidth / 5));
+                    }
+                    if (y <= mapHeight / 5 && downDescent)
+                    {
+                        // Closer to left
+                        noiseMap[x, y] = Mathf.Min(noiseMap[x, y], (float)y / (mapHeight / 5));
+                    }
+                    if (y >= mapHeight * 4 / 5 && upDescent)
+                    {
+                        // Closer to right
+                        noiseMap[x, y] = Mathf.Min(noiseMap[x, y], (float)(mapHeight - y) / (mapHeight / 5));
+                    }
                 }
             }
         }
 
         return noiseMap;
+    }
+
+    static private float EvaluateDescent(float value)
+    {
+        float a = 3f;
+        float b = 2.2f;
+        return Mathf.Pow(value, a) / (Mathf.Pow(value, a) + Mathf.Pow(b - b*value, a));
     }
 }
