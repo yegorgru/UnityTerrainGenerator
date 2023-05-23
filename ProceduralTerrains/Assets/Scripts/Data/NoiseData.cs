@@ -1,30 +1,50 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu]
-public class NoiseData : ScriptableObject
+public abstract class NoiseData : ScriptableObject
 {
-
-    public float noiseScale;
-
-    public int numberOctaves;
-    [Range(0f, 1f)]
-    public float persistance;
-    public float lacunarity;
-
-    public int seed;
-    public Vector2 offset;
-
-    private void OnValidate()
+    public enum NoiseType
     {
-        if (lacunarity < 1)
-        {
-            lacunarity = 1;
-        }
-        if (numberOctaves < 0)
-        {
-            numberOctaves = 0;
-        }
+        ValueNoise,
+        PerlinNoise,
+    }
+
+    public virtual NoiseType GetNoiseType()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual float GetNoiseScale()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual int GetNumberOctaves()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual float GetPersistance()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual float GetLacunarity()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual int GetSeed()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual Vector2 GetOffset()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual int GetGridFrequency()
+    {
+        throw new System.Exception("Incorrect noise data provided");
     }
 }

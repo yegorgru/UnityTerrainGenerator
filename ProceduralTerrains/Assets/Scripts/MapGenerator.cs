@@ -31,7 +31,7 @@ public class MapGenerator : MonoBehaviour
 
     public enum TileType
     {
-        PerlinNoiseTableland,
+        NoiseTableland,
         City
     }
 
@@ -95,7 +95,7 @@ public class MapGenerator : MonoBehaviour
 
     public void GenerateChunks()
     {
-        NoiseData noiseData = AssetDatabase.LoadAssetAtPath<NoiseData>("Assets\\TerrainAssets\\DefaultNoise.asset");
+        PerlinNoiseData noiseData = AssetDatabase.LoadAssetAtPath<PerlinNoiseData>("Assets\\TerrainAssets\\DefaultNoise.asset");
         TerrainData terrainData = AssetDatabase.LoadAssetAtPath<TerrainData>("Assets\\TerrainAssets\\DefaultTerrain.asset");
         RegionsData regionsData = AssetDatabase.LoadAssetAtPath<RegionsData>("Assets\\TerrainAssets\\DefaultRegions.asset");
         for (int y = 0; y < lengthOfRegion; y++)

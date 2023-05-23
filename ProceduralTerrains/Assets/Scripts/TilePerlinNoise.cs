@@ -47,7 +47,7 @@ public class TilePerlinNoise : Tile
         meshObject.transform.localScale = Vector3.one * 1f / size * sizeScale;
         meshObject.SetActive(true);
 
-        float[,] noiseMap = Noise.GenerateNoiseMap(noiseData, position, true);
+        float[,] noiseMap = Noise.GenerateNoise(noiseData, position, true);
         heightMap = noiseMap;
     }
 

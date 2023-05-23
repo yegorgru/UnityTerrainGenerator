@@ -25,7 +25,7 @@ public class TileWindow : EditorWindow
         xCoord = EditorGUILayout.IntField("X coordinate of tile", xCoord);
         yCoord = EditorGUILayout.IntField("Y coordinate of tile", yCoord);
 
-        if (tileType == MapGenerator.TileType.PerlinNoiseTableland)
+        if (tileType == MapGenerator.TileType.NoiseTableland)
         {
             if (tileProperties == null || !(tileProperties is PerlinNoiseProperties))
             {
