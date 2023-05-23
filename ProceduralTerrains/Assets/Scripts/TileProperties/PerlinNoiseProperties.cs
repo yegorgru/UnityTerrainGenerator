@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using static Building;
 
 public class PerlinNoiseProperties : TileProperties
 {
@@ -7,10 +8,8 @@ public class PerlinNoiseProperties : TileProperties
     private static TerrainData terrainData;
     private static RegionsData regionsData;
 
-    bool upDescent;
-    bool downDescent;
-    bool leftDescent;
-    bool rightDescent;
+    private int blendingWidth = 50;
+    private Blending.BlendingType blendingType;
 
     public override void DrawGUI()
     {
@@ -18,10 +17,8 @@ public class PerlinNoiseProperties : TileProperties
         terrainData = (TerrainData)EditorGUILayout.ObjectField("Terrain Data", terrainData, typeof(TerrainData), false);
         regionsData = (RegionsData)EditorGUILayout.ObjectField("Regions Data", regionsData, typeof(RegionsData), false);
 
-        upDescent = EditorGUILayout.Toggle("Up descent", upDescent);
-        downDescent = EditorGUILayout.Toggle("Down descent", downDescent);
-        leftDescent = EditorGUILayout.Toggle("Left descent", leftDescent);
-        rightDescent = EditorGUILayout.Toggle("Right descent", rightDescent);
+        blendingWidth = EditorGUILayout.IntField("Blending width", blendingWidth);
+        blendingType = (Blending.BlendingType)EditorGUILayout.EnumPopup("Blending type", blendingType);
     }
 
     public override void CreateTile(MapGenerator mapGenerator, int xCoord, int yCoord)
@@ -29,7 +26,7 @@ public class PerlinNoiseProperties : TileProperties
         Vector2Int coordinates = new Vector2Int(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform, upDescent, downDescent, leftDescent, rightDescent);
+            Tile tile = TilePerlinNoise.GenerateTile(mapGenerator.GetHeightDictionary(), coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform, blendingWidth, blendingType);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }

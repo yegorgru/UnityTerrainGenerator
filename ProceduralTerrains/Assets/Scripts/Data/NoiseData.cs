@@ -6,7 +6,6 @@ using UnityEngine;
 public class NoiseData : ScriptableObject
 {
 
-    public Noise.NormalizeMode normalizeMode;
     public float noiseScale;
 
     public int numberOctaves;

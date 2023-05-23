@@ -213,6 +213,7 @@ public class TileCity : Tile
 
     private TileCity(Vector2Int coord, Vector2 viewedCoord, Transform parent, float sizeScale, Color sidewalkColor, Building.FloorSizePolicy floorSizePolicy, int cityFrequency)
     {
+        heightMap = new float[Noise.NOISE_MAP_WIDTH, Noise.NOISE_MAP_WIDTH];
         this.floorSizePolicy = floorSizePolicy;
         this.coord = coord;
         this.cityFrequency = cityFrequency;

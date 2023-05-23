@@ -23,7 +23,8 @@ public class MapGenerator : MonoBehaviour
 
     private bool cityMapGenerated = false;
 
-    private Dictionary<Vector2, Tile> terrainChunkDictionary = new Dictionary<Vector2, Tile>();
+    private Dictionary<Vector2Int, Tile> terrainChunkDictionary = new Dictionary<Vector2Int, Tile>();
+    private Dictionary<Vector2Int, float[,]> heightMapDictionary = new Dictionary<Vector2Int, float[,]>();
 
     private RoadItem[,] roadItems;
     private CityItem[,] cityItems;
@@ -116,9 +117,10 @@ public class MapGenerator : MonoBehaviour
             GameObject.DestroyImmediate(child.gameObject);
         }
         terrainChunkDictionary.Clear();
+        heightMapDictionary.Clear();
     }
 
-    public bool CheckPosition(Vector2 coordinates)
+    public bool CheckPosition(Vector2Int coordinates)
     {
         if (coordinates.x < 0 || coordinates.x >= widthOfRegion || coordinates.y < 0 || coordinates.y >= lengthOfRegion || terrainChunkDictionary.ContainsKey(coordinates))
         {
@@ -128,12 +130,18 @@ public class MapGenerator : MonoBehaviour
         return true;
     }
 
-    public void AddChunk(Vector2 coordinates, Tile tile)
+    public void AddChunk(Vector2Int coordinates, Tile tile)
     {
         terrainChunkDictionary.Add(coordinates, tile);
+        heightMapDictionary[coordinates] = tile.GetHeightMap();
     }
 
-    public void RemoveChunk(Vector2 coordinates)
+    public Dictionary<Vector2Int, float[,]> GetHeightDictionary()
+    {
+        return heightMapDictionary;
+    }
+
+    public void RemoveChunk(Vector2Int coordinates)
     {
         if(terrainChunkDictionary.ContainsKey(coordinates))
         {
