@@ -12,6 +12,14 @@ public static class Noise
         {
             case NoiseData.NoiseType.ValueNoise:
                 return GenerateValueNoise(noiseData, center, useLerp);
+            case NoiseData.NoiseType.VoronoiNoise:
+                return GenerateVoronoiNoise(noiseData, center, useLerp);
+            case NoiseData.NoiseType.GridVoronoiNoise:
+                return GenerateGridVoronoiNoise(noiseData, center, useLerp);
+            case NoiseData.NoiseType.ChebyshevVoronoiNoise:
+                return GenerateGridVoronoiNoise(noiseData, center, useLerp);
+            case NoiseData.NoiseType.ManhattanVoronoiNoise:
+                return GenerateGridVoronoiNoise(noiseData, center, useLerp);
             case NoiseData.NoiseType.PerlinNoise:
             default:
                 return GeneratePerlinNoise(noiseData, center, useLerp);
@@ -25,7 +33,6 @@ public static class Noise
         System.Random r = new System.Random(noiseData.GetSeed());
         Vector2[] octaveOffsets = new Vector2[noiseData.GetNumberOctaves()];
 
-        float maxPossibleHeight = 0;
         float amplitude = 1;
 
         for (int i = 0; i < noiseData.GetNumberOctaves(); i++)
@@ -34,7 +41,6 @@ public static class Noise
             float offsetY = r.Next(-100000, 100000) - offset.y;
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
 
-            maxPossibleHeight += amplitude;
             amplitude *= noiseData.GetPersistance();
         }
 
@@ -144,6 +150,155 @@ public static class Noise
                 float t = Mathf.SmoothStep(noiseMap[leftTopGridPos.x * gridCellSize, leftTopGridPos.y * gridCellSize], noiseMap[rightTopGridPos.x * gridCellSize, rightTopGridPos.y * gridCellSize], (float)(x % gridCellSize) / gridCellSize);
 
                 noiseMap[x, y] = Mathf.SmoothStep(b, t, (float)(y % gridCellSize) / gridCellSize);
+
+                maxLocalNoiseHeight = Mathf.Max(maxLocalNoiseHeight, noiseMap[x, y]);
+                minLocalNoiseHeight = Mathf.Min(minLocalNoiseHeight, noiseMap[x, y]);
+            }
+        }
+
+        ApplyLerp(noiseMap, minLocalNoiseHeight, maxLocalNoiseHeight, useLerp);
+
+        return noiseMap;
+    }
+
+    public static float[,] GenerateVoronoiNoise(NoiseData noiseData, Vector2 center, bool useLerp)
+    {
+        Dictionary<int, Vector2Int[]> pivotPoints = new Dictionary<int, Vector2Int[]>();
+
+        Random.InitState(noiseData.GetSeed());
+
+        for (int octave = 0; octave < noiseData.GetNumberOctaves(); ++octave)
+        {
+            Vector2Int[] octavePivotPoints = new Vector2Int[noiseData.GetPivotNumber() * Mathf.RoundToInt(Mathf.Pow(2, octave))];
+            for (int i = 0; i < octavePivotPoints.GetLength(0); i++)
+            {
+                octavePivotPoints[i] = new Vector2Int(Random.Range(0, NOISE_MAP_WIDTH), Random.Range(0, NOISE_MAP_WIDTH));
+            }
+            pivotPoints[octave] = octavePivotPoints;
+        }
+
+        float[,] noiseMap = new float[NOISE_MAP_WIDTH, NOISE_MAP_WIDTH];
+
+        float maxLocalNoiseHeight = float.MinValue;
+        float minLocalNoiseHeight = float.MaxValue;
+
+        for (int y = 0; y < NOISE_MAP_WIDTH; y++)
+        {
+            for (int x = 0; x < NOISE_MAP_WIDTH; x++)
+            {
+                float amplitude = 1f;
+
+                for (int octave = 0; octave < noiseData.GetNumberOctaves(); ++octave)
+                {
+                    Vector2Int[] octavePivotPoints = pivotPoints[octave];
+                    float minDistance = float.MaxValue;
+                    foreach (Vector2Int pivotPoint in octavePivotPoints)
+                    {
+                        float distance = Vector2Int.Distance(new Vector2Int(x, y), pivotPoint);
+
+                        if (distance < minDistance)
+                        {
+                            minDistance = distance;
+                        }
+                    }
+
+                    noiseMap[x, y] += minDistance;
+
+                    amplitude *= noiseData.GetPersistance();
+                }
+
+                maxLocalNoiseHeight = Mathf.Max(maxLocalNoiseHeight, noiseMap[x, y]);
+                minLocalNoiseHeight = Mathf.Min(minLocalNoiseHeight, noiseMap[x, y]);
+            }
+        }
+
+        ApplyLerp(noiseMap, minLocalNoiseHeight, maxLocalNoiseHeight, useLerp);
+
+        return noiseMap;
+    }
+
+    public static float[,] GenerateGridVoronoiNoise(NoiseData noiseData, Vector2 center, bool useLerp)
+    {
+        Dictionary<int, Vector2Int[]> pivotPoints = new Dictionary<int, Vector2Int[]>();
+
+        Random.InitState(noiseData.GetSeed());
+
+        int gridCellSize = (NOISE_MAP_WIDTH - 1) / noiseData.GetGridFrequency();
+
+        int pivotNumber = noiseData.GetGridFrequency() * noiseData.GetGridFrequency();
+
+        for (int octave = 0; octave < noiseData.GetNumberOctaves(); ++octave)
+        {
+            int octaveFactor = Mathf.RoundToInt(Mathf.Pow(2, octave));
+            int pivotCounter = 0;
+            Vector2Int[] octavePivotPoints = new Vector2Int[pivotNumber * octaveFactor];
+
+            for (int x = 0; x < noiseData.GetGridFrequency(); x++)
+            {
+                for (int y = 0; y < noiseData.GetGridFrequency(); y++)
+                {
+                    for(int i = 0; i < octaveFactor; ++i)
+                    {
+                        octavePivotPoints[pivotCounter++] = new Vector2Int(Random.Range(x * gridCellSize, (x + 1) * gridCellSize), Random.Range(y * gridCellSize, (y + 1) * gridCellSize));
+                    }
+                }
+            }
+
+            pivotPoints[octave] = octavePivotPoints;
+        }
+
+        float[,] noiseMap = new float[NOISE_MAP_WIDTH, NOISE_MAP_WIDTH];
+
+        float maxLocalNoiseHeight = float.MinValue;
+        float minLocalNoiseHeight = float.MaxValue;
+
+        for (int y = 0; y < NOISE_MAP_WIDTH; y++)
+        {
+            for (int x = 0; x < NOISE_MAP_WIDTH; x++)
+            {
+                if (y == NOISE_MAP_WIDTH - 1)
+                {
+                    noiseMap[x, y] = noiseMap[x, y - 1];
+                    continue;
+                }
+                if (x == NOISE_MAP_WIDTH - 1)
+                {
+                    noiseMap[x, y] = noiseMap[x - 1, y];
+                    continue;
+                }
+                float amplitude = 1f;
+
+                for (int octave = 0; octave < noiseData.GetNumberOctaves(); ++octave)
+                {
+                    Vector2Int[] octavePivotPoints = pivotPoints[octave];
+                    float minDistance = float.MaxValue;
+                    foreach (Vector2Int pivotPoint in octavePivotPoints)
+                    {
+                        float distance = 0f;
+
+                        switch (noiseData.GetVoronoiDistanceType())
+                        {
+                            case NoiseData.VoronoiDistanceType.Manhattan:
+                                distance = Mathf.Abs(x - pivotPoint.x) + Mathf.Abs(y - pivotPoint.y);
+                                break;
+                            case NoiseData.VoronoiDistanceType.Chebyshev:
+                                distance = Mathf.Max(Mathf.Abs(x - pivotPoint.x), Mathf.Abs(y - pivotPoint.y));
+                                break;
+                            default:
+                                distance = Vector2Int.Distance(new Vector2Int(x, y), pivotPoint);
+                                break;
+                        }
+
+                        if (distance < minDistance)
+                        {
+                            minDistance = distance;
+                        }
+                    }
+
+                    noiseMap[x, y] += minDistance;
+
+                    amplitude *= noiseData.GetPersistance();
+                }
 
                 maxLocalNoiseHeight = Mathf.Max(maxLocalNoiseHeight, noiseMap[x, y]);
                 minLocalNoiseHeight = Mathf.Min(minLocalNoiseHeight, noiseMap[x, y]);

@@ -9,12 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86070e79bd2e0cb4a99a9d6ed1e6fbe0, type: 3}
-  m_Name: DefaultPerlinNoise
+  m_Script: {fileID: 11500000, guid: e9fdb4e049b9e864b951fe4c57752d26, type: 3}
+  m_Name: GridVoronoiNoiseData
   m_EditorClassIdentifier: 
-  noiseScale: 40
-  numberOctaves: 4
-  persistance: 0.196
-  lacunarity: 3
   seed: 0
-  offset: {x: 0, y: 0}
+  gridFrequency: 10
+  persistance: 0.4
+  numberOctaves: 3
+  distanceType: 2

@@ -6,6 +6,17 @@ public abstract class NoiseData : ScriptableObject
     {
         ValueNoise,
         PerlinNoise,
+        VoronoiNoise,
+        GridVoronoiNoise,
+        ChebyshevVoronoiNoise,
+        ManhattanVoronoiNoise
+    }
+
+    public enum VoronoiDistanceType
+    {
+        Warley,
+        Chebyshev,
+        Manhattan
     }
 
     public virtual NoiseType GetNoiseType()
@@ -44,6 +55,16 @@ public abstract class NoiseData : ScriptableObject
     }
 
     public virtual int GetGridFrequency()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual int GetPivotNumber()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual VoronoiDistanceType GetVoronoiDistanceType()
     {
         throw new System.Exception("Incorrect noise data provided");
     }
