@@ -12,6 +12,12 @@ public abstract class NoiseData : ScriptableObject
         ManhattanVoronoiNoise
     }
 
+    public enum ValueInterpolationType
+    {
+        Linear,
+        Smooth
+    }
+
     public enum VoronoiDistanceType
     {
         Warley,
@@ -65,6 +71,11 @@ public abstract class NoiseData : ScriptableObject
     }
 
     public virtual VoronoiDistanceType GetVoronoiDistanceType()
+    {
+        throw new System.Exception("Incorrect noise data provided");
+    }
+
+    public virtual ValueInterpolationType GetValueInterpolationType()
     {
         throw new System.Exception("Incorrect noise data provided");
     }

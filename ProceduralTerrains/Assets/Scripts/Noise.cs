@@ -115,6 +115,18 @@ public static class Noise
         }
     }
 
+    public static float ApplyInterpolation(float a, float b, float factor, NoiseData.ValueInterpolationType valueInterpolationType)
+    {
+        if(valueInterpolationType == NoiseData.ValueInterpolationType.Linear)
+        {
+            return Mathf.Lerp(a, b, factor);
+        }
+        else
+        {
+            return Mathf.SmoothStep(a, b, factor);
+        }
+    }
+
     public static float[,] GenerateValueNoise(NoiseData noiseData, Vector2 center, bool useLerp)
     {
         Vector2 offset = noiseData.GetOffset() + center;
@@ -146,10 +158,10 @@ public static class Noise
                 Vector2Int leftTopGridPos = new Vector2Int(leftDownGridPos.x, leftDownGridPos.y + 1);
                 Vector2Int rightTopGridPos = new Vector2Int(leftDownGridPos.x + 1, leftDownGridPos.y + 1);
 
-                float b = Mathf.SmoothStep(noiseMap[leftDownGridPos.x * gridCellSize, leftDownGridPos.y * gridCellSize], noiseMap[rightDownGridPos.x * gridCellSize, rightDownGridPos.y * gridCellSize], (float)(x % gridCellSize) / gridCellSize);
-                float t = Mathf.SmoothStep(noiseMap[leftTopGridPos.x * gridCellSize, leftTopGridPos.y * gridCellSize], noiseMap[rightTopGridPos.x * gridCellSize, rightTopGridPos.y * gridCellSize], (float)(x % gridCellSize) / gridCellSize);
+                float b = ApplyInterpolation(noiseMap[leftDownGridPos.x * gridCellSize, leftDownGridPos.y * gridCellSize], noiseMap[rightDownGridPos.x * gridCellSize, rightDownGridPos.y * gridCellSize], (float)(x % gridCellSize) / gridCellSize, noiseData.GetValueInterpolationType());
+                float t = ApplyInterpolation(noiseMap[leftTopGridPos.x * gridCellSize, leftTopGridPos.y * gridCellSize], noiseMap[rightTopGridPos.x * gridCellSize, rightTopGridPos.y * gridCellSize], (float)(x % gridCellSize) / gridCellSize, noiseData.GetValueInterpolationType());
 
-                noiseMap[x, y] = Mathf.SmoothStep(b, t, (float)(y % gridCellSize) / gridCellSize);
+                noiseMap[x, y] = ApplyInterpolation(b, t, (float)(y % gridCellSize) / gridCellSize, noiseData.GetValueInterpolationType());
 
                 maxLocalNoiseHeight = Mathf.Max(maxLocalNoiseHeight, noiseMap[x, y]);
                 minLocalNoiseHeight = Mathf.Min(minLocalNoiseHeight, noiseMap[x, y]);

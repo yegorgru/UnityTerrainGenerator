@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seed: 0
   gridFrequency: 10
-  persistance: 0.4
+  persistance: 0.5
   numberOctaves: 3
-  distanceType: 2
+  distanceType: 0

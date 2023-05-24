@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class TilePerlinNoise : Tile
+public class TileNoise : Tile
 {
     public Vector2 position;
 
@@ -14,23 +14,29 @@ public class TilePerlinNoise : Tile
 
     private const int size = 240;
 
-    public static TilePerlinNoise GenerateTile(Dictionary<Vector2Int, float[,]> heigthMapDict,  Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform, int blendingWidth, Blending.BlendingType blendingType)
+    public enum RenderMode
+    {
+        Mesh3d,
+        Noise2d
+    }
+     
+    public static TileNoise GenerateTile(Dictionary<Vector2Int, float[,]> heigthMapDict,  Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform, int blendingWidth, Blending.BlendingType blendingType, RenderMode renderMode)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
-        Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets\\Materials\\DefaultMaterial.mat");
 
-        TilePerlinNoise tile = new TilePerlinNoise(viewedChunkCoord, transform, material, terrainData, 100f, noiseData);
+        TileNoise tile = new TileNoise(viewedChunkCoord, transform, terrainData, 100f, noiseData);
         float[,] heightMap = tile.GetHeightMap();
         tile.SetHeightMap(Blending.ApplyBlending(coordinates, blendingWidth, blendingType, in heigthMapDict, in heightMap));
-        tile.CreateMesh(tile.GenerateMapData(regionsData));
+        tile.CreateMesh(tile.GenerateMapData(regionsData), renderMode);
         return tile;
     }
 
-    public TilePerlinNoise(Vector2 coord, Transform parent, Material material, TerrainData terrainData, float sizeScale, NoiseData noiseData)
+    public TileNoise(Vector2 coord, Transform parent, TerrainData terrainData, float sizeScale, NoiseData noiseData)
     {
+        Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets\\Materials\\DefaultMaterial.mat");
         this.terrainData = terrainData;
 
         position = coord * size;
@@ -51,7 +57,7 @@ public class TilePerlinNoise : Tile
         heightMap = noiseMap;
     }
 
-    private PerlinNoiseMapData GenerateMapData(RegionsData regionsData)
+    private MapData GenerateMapData(RegionsData regionsData)
     {
         Color[] colourMap = new Color[Noise.NOISE_MAP_WIDTH * Noise.NOISE_MAP_WIDTH];
         for (int y = 0; y < Noise.NOISE_MAP_WIDTH; y++)
@@ -70,29 +76,36 @@ public class TilePerlinNoise : Tile
             }
         }
 
-        return new PerlinNoiseMapData(heightMap, colourMap);
+        return new MapData(heightMap, colourMap);
     }
 
-    public void CreateMesh(PerlinNoiseMapData mapData)
+    public void CreateMesh(MapData mapData, RenderMode renderMode)
     {
-        Texture2D texture = TextureGenerator.TextureFromColourMap(mapData.colorMap, Noise.NOISE_MAP_WIDTH, Noise.NOISE_MAP_WIDTH);
+        Texture2D texture;
+        if (renderMode == RenderMode.Mesh3d)
+        {
+            texture = Utils.TextureFromColourMap(mapData.colorMap, Noise.NOISE_MAP_WIDTH, Noise.NOISE_MAP_WIDTH);
+        }
+        else
+        {
+            texture = Utils.TextureFromHeightMap(mapData.heightMap);
+        }
         Material material = GameObject.Instantiate(meshRenderer.sharedMaterial);
         material.SetTexture("_MainTex", texture);
         meshRenderer.material = material;
 
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.heightMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve);
-        Mesh mesh = meshData.CreateMesh();
+        Mesh mesh = Utils.GenerateTerrainMesh(mapData.heightMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve, renderMode);
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
     }
 }
 
-public struct PerlinNoiseMapData
+public struct MapData
 {
     public readonly float[,] heightMap;
     public readonly Color[] colorMap;
 
-    public PerlinNoiseMapData(float[,] heightMap, Color[] colorMap)
+    public MapData(float[,] heightMap, Color[] colorMap)
     {
         this.heightMap = heightMap;
         this.colorMap = colorMap;

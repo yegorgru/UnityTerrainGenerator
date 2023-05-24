@@ -10,6 +10,7 @@ public class PerlinNoiseProperties : TileProperties
 
     private int blendingWidth = 50;
     private Blending.BlendingType blendingType;
+    private TileNoise.RenderMode renderMode;
 
     public override void DrawGUI()
     {
@@ -19,6 +20,7 @@ public class PerlinNoiseProperties : TileProperties
 
         blendingWidth = EditorGUILayout.IntField("Blending width", blendingWidth);
         blendingType = (Blending.BlendingType)EditorGUILayout.EnumPopup("Blending type", blendingType);
+        renderMode = (TileNoise.RenderMode)EditorGUILayout.EnumPopup("Render mode", renderMode);
     }
 
     public override void CreateTile(MapGenerator mapGenerator, int xCoord, int yCoord)
@@ -26,7 +28,7 @@ public class PerlinNoiseProperties : TileProperties
         Vector2Int coordinates = new Vector2Int(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = TilePerlinNoise.GenerateTile(mapGenerator.GetHeightDictionary(), coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform, blendingWidth, blendingType);
+            Tile tile = TileNoise.GenerateTile(mapGenerator.GetHeightDictionary(), coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform, blendingWidth, blendingType, renderMode);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }
