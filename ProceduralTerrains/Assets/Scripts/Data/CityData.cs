@@ -16,6 +16,8 @@ public class CityData : ScriptableObject
 
     public Building.FloorSizePolicy floorSizePolicy = Building.FloorSizePolicy.Random;
 
+    public int startRoadItemsNumber = 1;
+
     private void OnValidate()
     {
         cityFrequency = Mathf.RoundToInt(cityFrequency / 5f) * 5;

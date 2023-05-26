@@ -18,3 +18,4 @@ MonoBehaviour:
   maxNumberOfFloors: 10
   sidewalkColor: {r: 0.12322002, g: 0.6698113, b: 0.14198704, a: 1}
   floorSizePolicy: 2
+  startRoadItemsNumber: 2

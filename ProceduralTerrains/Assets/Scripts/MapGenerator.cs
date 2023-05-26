@@ -45,7 +45,7 @@ public class MapGenerator : MonoBehaviour
 
     public void GenerateCityMap()
     {
-        roadItems = GenerateRoadMap(lengthOfRegion * cityData.cityFrequency / UNITS_PER_ROAD_ITEM, widthOfRegion * cityData.cityFrequency / UNITS_PER_ROAD_ITEM);
+        roadItems = GenerateRoadMap(lengthOfRegion * cityData.cityFrequency / UNITS_PER_ROAD_ITEM, widthOfRegion * cityData.cityFrequency / UNITS_PER_ROAD_ITEM, cityData.startRoadItemsNumber);
         cityItems = GenerateCityItemsMap(roadItems, cityData);
         cityMapGenerated = true;
     }

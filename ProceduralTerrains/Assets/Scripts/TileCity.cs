@@ -33,30 +33,45 @@ public class TileCity : Tile
         return chunk;
     }
 
-    static public RoadItem[,] GenerateRoadMap(int width, int length)
+    static public RoadItem[,] GenerateRoadMap(int width, int length, int numberOfStartRoadItems)
     {
         RoadItem[,] roadMap = new RoadItem[width, length];
-        int x = width / 2;
-        int y = length / 2;
-        roadMap[x, y] = RoadItem.CreateStartRoadItem();
 
         Queue<Vector2Int> queueToProcess = new Queue<Vector2Int>();
-        if (x + 1 < width)
+        if (numberOfStartRoadItems == 1)
         {
-            queueToProcess.Enqueue(new Vector2Int(x + 1, y));
+            int x = width / 2;
+            int y = length / 2;
+            roadMap[x, y] = RoadItem.CreateStartRoadItem();
+
+            if (x + 1 < width)
+            {
+                queueToProcess.Enqueue(new Vector2Int(x + 1, y));
+            }
+            if (x - 1 >= 0)
+            {
+                queueToProcess.Enqueue(new Vector2Int(x - 1, y));
+            }
+            if (y + 1 < length)
+            {
+                queueToProcess.Enqueue(new Vector2Int(x, y + 1));
+            }
+            if (y - 1 >= 0)
+            {
+                queueToProcess.Enqueue(new Vector2Int(x, y - 1));
+            }
         }
-        if (x - 1 >= 0)
+        else
         {
-            queueToProcess.Enqueue(new Vector2Int(x - 1, y));
+            for (int i = 0; i < numberOfStartRoadItems; ++i)
+            {
+                int x = UnityEngine.Random.Range(0, width);
+                int y = UnityEngine.Random.Range(0, length);
+                roadMap[x, y] = new RoadItem();
+                queueToProcess.Enqueue(new Vector2Int(x, y));
+            }
         }
-        if(y + 1 < length)
-        {
-            queueToProcess.Enqueue(new Vector2Int(x, y + 1));
-        }
-        if (y - 1 >= 0)
-        {
-            queueToProcess.Enqueue(new Vector2Int(x, y - 1));
-        }
+
 
         while (queueToProcess.Count != 0)
         {
