@@ -7,19 +7,14 @@ using static TileCity;
 
 public class MapGenerator : MonoBehaviour
 {
-    public bool autoUpdate;
+    [SerializeField]
+    private int widthOfRegion = 5;
 
-    public int widthOfRegion = 5;
+    [SerializeField]
+    private int lengthOfRegion = 5;
 
-    public int lengthOfRegion = 5;
-
-    public int cityFrequency = DEFAULT_CITY_FREQUENCY;
-
-    public float buildingChance;
-
-    public float nonBuildingChance;
-
-    public int maxNumberOfFloors;
+    [SerializeField]
+    private CityData cityData;
 
     private bool cityMapGenerated = false;
 
@@ -44,18 +39,14 @@ public class MapGenerator : MonoBehaviour
     {
         widthOfRegion = Math.Max(1, widthOfRegion);
         lengthOfRegion = Math.Max(1, lengthOfRegion);
-        cityFrequency = Mathf.RoundToInt(cityFrequency / 5f) * 5;
-        cityFrequency = Math.Max(5, cityFrequency);
-        buildingChance = Mathf.Min(1, Mathf.Max(0, buildingChance));
-        nonBuildingChance = Mathf.Min(1, Mathf.Max(0, nonBuildingChance));
-        maxNumberOfFloors = Math.Min(50, Math.Max(1, maxNumberOfFloors));
         cityMapGenerated = false;
+        Clear();
     }
 
     public void GenerateCityMap()
     {
-        roadItems = GenerateRoadMap(lengthOfRegion * cityFrequency / UNITS_PER_ROAD_ITEM, widthOfRegion * cityFrequency / UNITS_PER_ROAD_ITEM);
-        cityItems = GenerateCityItemsMap(roadItems, buildingChance, nonBuildingChance, maxNumberOfFloors);
+        roadItems = GenerateRoadMap(lengthOfRegion * cityData.cityFrequency / UNITS_PER_ROAD_ITEM, widthOfRegion * cityData.cityFrequency / UNITS_PER_ROAD_ITEM);
+        cityItems = GenerateCityItemsMap(roadItems, cityData);
         cityMapGenerated = true;
     }
 
@@ -76,37 +67,6 @@ public class MapGenerator : MonoBehaviour
     public int GetLengthOfRegion()
     {
         return lengthOfRegion;
-    }
-
-    public int GetCityFrequency()
-    {
-        return cityFrequency;
-    }
-
-    public float GetBuildingChance()
-    {
-        return buildingChance;
-    }
-
-    public float GetNonBuildingChance()
-    {
-        return nonBuildingChance;
-    }
-
-    public void GenerateChunks()
-    {
-        PerlinNoiseData noiseData = AssetDatabase.LoadAssetAtPath<PerlinNoiseData>("Assets\\TerrainAssets\\DefaultNoise.asset");
-        TerrainData terrainData = AssetDatabase.LoadAssetAtPath<TerrainData>("Assets\\TerrainAssets\\DefaultTerrain.asset");
-        RegionsData regionsData = AssetDatabase.LoadAssetAtPath<RegionsData>("Assets\\TerrainAssets\\DefaultRegions.asset");
-        for (int y = 0; y < lengthOfRegion; y++)
-        {
-            for (int x = 0; x < widthOfRegion; x++)
-            {
-                /*Vector2Int coordinates = new Vector2Int(x, y);
-                Tile tile = TilePerlinNoise.GenerateTile(coordinates, noiseData, terrainData, regionsData, widthOfRegion, lengthOfRegion, transform);
-                AddChunk(coordinates, tile);*/
-            }
-        }
     }
 
     public void Clear()
@@ -150,5 +110,8 @@ public class MapGenerator : MonoBehaviour
         terrainChunkDictionary.Remove(coordinates);
     }
 
-    
+    public CityData GetCityData()
+    {
+        return cityData;
+    }
 }

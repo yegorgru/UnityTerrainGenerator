@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using static TileCity;
 
 public class TileCity : Tile
 {
     public Vector2 position;
-    Building.FloorSizePolicy floorSizePolicy;
 
     private GameObject[] nonBuildingPrefabs;
     private GameObject nonBuildingsObj;
@@ -16,19 +14,19 @@ public class TileCity : Tile
     private GameObject roadsObj;
 
     private Vector2Int coord;
-    private int cityFrequency;
+    private CityData cityData;
 
     public const int UNITS_PER_ROAD_ITEM = 5;
     public const int DEFAULT_CITY_FREQUENCY = 50;
 
-    static public TileCity GenerateTile(Vector2Int coordinates, int widthOfRegion, int lengthOfRegion, int cityFrequency, Transform transform, Color sidewalkColor, Building.FloorSizePolicy floorSizePolicy, RoadItem[,] roadItems, CityItem[,] cityItems)
+    static public TileCity GenerateTile(Vector2Int coordinates, int widthOfRegion, int lengthOfRegion, Transform parent, RoadItem[,] roadItems, CityItem[,] cityItems, CityData cityData)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
-        TileCity chunk = new TileCity(coordinates, viewedChunkCoord, transform, 100f, sidewalkColor, floorSizePolicy, cityFrequency);
+        TileCity chunk = new TileCity(coordinates, viewedChunkCoord, parent, 100f, cityData);
         chunk.PlaceRoadItems(roadItems);
         chunk.PlaceNonRoads(cityItems);
 
@@ -99,7 +97,7 @@ public class TileCity : Tile
         return roadMap;
     }
 
-    static public CityItem[,] GenerateCityItemsMap(RoadItem[,] roadItems, float buildingChance, float nonBuildingChance, int maxNumberOfFloors)
+    static public CityItem[,] GenerateCityItemsMap(RoadItem[,] roadItems, CityData cityData)
     {
         CityItem[,] cityItems = new CityItem[roadItems.GetLength(0) * UNITS_PER_ROAD_ITEM, roadItems.GetLength(1) * UNITS_PER_ROAD_ITEM];
         for (int i = 0; i < roadItems.GetLength(1); ++i)
@@ -181,7 +179,7 @@ public class TileCity : Tile
                         }
                         else
                         {
-                            cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.CreateBuilding(cityItems[j, i - 1].height) : CityItem.CreateNone();
+                            cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < cityData.buildingChance ? CityItem.CreateBuilding(cityItems[j, i - 1].height) : CityItem.CreateNone();
                         }
                     }
                 }
@@ -193,30 +191,30 @@ public class TileCity : Tile
                     }
                     else
                     {
-                        int height = j > 1 && cityItems[j - 1, i].type == CityItemType.Building ? cityItems[j - 1, i].height : UnityEngine.Random.Range(1, maxNumberOfFloors + 1);
-                        cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.CreateBuilding(height) : CityItem.CreateNone();
+                        int height = j > 1 && cityItems[j - 1, i].type == CityItemType.Building ? cityItems[j - 1, i].height : UnityEngine.Random.Range(1, cityData.maxNumberOfFloors + 1);
+                        cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < cityData.buildingChance ? CityItem.CreateBuilding(height) : CityItem.CreateNone();
                     }
                 }
                 else // i == 0
                 {
-                    int height = j > 1 && cityItems[j - 1, i].type == CityItemType.Building ? cityItems[j - 1, i].height : UnityEngine.Random.Range(1, maxNumberOfFloors + 1);
-                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < buildingChance ? CityItem.CreateBuilding(height) : CityItem.CreateNone();
+                    int height = j > 1 && cityItems[j - 1, i].type == CityItemType.Building ? cityItems[j - 1, i].height : UnityEngine.Random.Range(1, cityData.maxNumberOfFloors + 1);
+                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < cityData.buildingChance ? CityItem.CreateBuilding(height) : CityItem.CreateNone();
                 }
                 if (cityItems[j, i].type == CityItemType.None)
                 {
-                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < nonBuildingChance ? CityItem.CreateNonBuilding() : CityItem.CreateNone();
+                    cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < cityData.nonBuildingChance ? CityItem.CreateNonBuilding() : CityItem.CreateNone();
                 }
             }
         }
         return cityItems;
     }
 
-    private TileCity(Vector2Int coord, Vector2 viewedCoord, Transform parent, float sizeScale, Color sidewalkColor, Building.FloorSizePolicy floorSizePolicy, int cityFrequency)
+    private TileCity(Vector2Int coord, Vector2 viewedCoord, Transform parent, float sizeScale, CityData cityData)
     {
+        this.cityData = cityData;
+
         heightMap = new float[Noise.NOISE_MAP_WIDTH, Noise.NOISE_MAP_WIDTH];
-        this.floorSizePolicy = floorSizePolicy;
         this.coord = coord;
-        this.cityFrequency = cityFrequency;
 
         Vector3 position3 = new Vector3(viewedCoord.x, 0, viewedCoord.y) * sizeScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
@@ -224,7 +222,7 @@ public class TileCity : Tile
         meshObject.name = "City Tile";
         MeshRenderer planeMeshRenderer = meshObject.GetComponent<MeshRenderer>();
         Material planeMaterial = new Material(Shader.Find("Standard"));
-        planeMaterial.color = sidewalkColor;
+        planeMaterial.color = cityData.sidewalkColor;
         planeMeshRenderer.sharedMaterial = planeMaterial;
 
         meshObject.transform.parent = parent;
@@ -254,17 +252,17 @@ public class TileCity : Tile
 
     private void PlaceRoadItems(RoadItem[,] roadItems)
     {
-        int offsetI = coord.x * cityFrequency / UNITS_PER_ROAD_ITEM;
-        int offsetJ = coord.y * cityFrequency / UNITS_PER_ROAD_ITEM;
-        for (int i = 0; i < cityFrequency / (int)UNITS_PER_ROAD_ITEM; ++i)
+        int offsetI = coord.x * cityData.cityFrequency / UNITS_PER_ROAD_ITEM;
+        int offsetJ = coord.y * cityData.cityFrequency / UNITS_PER_ROAD_ITEM;
+        for (int i = 0; i < cityData.cityFrequency / (int)UNITS_PER_ROAD_ITEM; ++i)
         {
-            for (int j = 0; j < cityFrequency / (int)UNITS_PER_ROAD_ITEM; ++j)
+            for (int j = 0; j < cityData.cityFrequency / (int)UNITS_PER_ROAD_ITEM; ++j)
             {
                 GameObject road = InstantiateRoadItem(roadItems[j + offsetJ, i + offsetI], "Assets\\Prefabs\\Roads", roadsObj.transform);
                 if (road != null)
                 {
-                    float scale = (float)DEFAULT_CITY_FREQUENCY / cityFrequency;
-                    road.transform.localPosition = new Vector3(scale * (2f * UNITS_PER_ROAD_ITEM * i - (cityFrequency - UNITS_PER_ROAD_ITEM)), 0, scale * (2f * UNITS_PER_ROAD_ITEM * j - (cityFrequency - UNITS_PER_ROAD_ITEM)));
+                    float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
+                    road.transform.localPosition = new Vector3(scale * (2f * UNITS_PER_ROAD_ITEM * i - (cityData.cityFrequency - UNITS_PER_ROAD_ITEM)), 0, scale * (2f * UNITS_PER_ROAD_ITEM * j - (cityData.cityFrequency - UNITS_PER_ROAD_ITEM)));
                     road.transform.localScale = Vector3.one * UNITS_PER_ROAD_ITEM * scale;
                 }
             }
@@ -279,11 +277,11 @@ public class TileCity : Tile
 
     private void PlaceNonRoads(CityItem[,] cityItems)
     {
-        int offsetI = coord.x * cityFrequency;
-        int offsetJ = coord.y * cityFrequency;
-        for (int i = 0; i < cityFrequency; ++i)
+        int offsetI = coord.x * cityData.cityFrequency;
+        int offsetJ = coord.y * cityData.cityFrequency;
+        for (int i = 0; i < cityData.cityFrequency; ++i)
         {
-            for (int j = 0; j < cityFrequency; ++j)
+            for (int j = 0; j < cityData.cityFrequency; ++j)
             {
                 if (getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).type == CityItemType.Building)
                 {
@@ -292,30 +290,30 @@ public class TileCity : Tile
                     }
                     int endJ = j;
                     int endI = i;
-                    while(endJ + 1 < cityFrequency && getCityItemWithOffset(cityItems, offsetI, offsetJ, i, endJ + 1).type == CityItemType.Building)
+                    while(endJ + 1 < cityData.cityFrequency && getCityItemWithOffset(cityItems, offsetI, offsetJ, i, endJ + 1).type == CityItemType.Building)
                     {
                         ++endJ;
                     }
-                    while (endI + 1 < cityFrequency && getCityItemWithOffset(cityItems, offsetI, offsetJ, endI + 1, j).type == CityItemType.Building)
+                    while (endI + 1 < cityData.cityFrequency && getCityItemWithOffset(cityItems, offsetI, offsetJ, endI + 1, j).type == CityItemType.Building)
                     {
                         ++endI;
                     }
                     GameObject buildingObj = new GameObject();
                     Building building = buildingObj.AddComponent<Building>();
-                    float scale = (float)DEFAULT_CITY_FREQUENCY / cityFrequency;
-                    building.Initialize(floorSizePolicy, "Assets/Prefabs/MiddleDetailed", endI - i + 1, endJ - j + 1, getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).height, 0.75f, 2f);
+                    float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
+                    building.Initialize(cityData.floorSizePolicy, "Assets/Prefabs/MiddleDetailed", endI - i + 1, endJ - j + 1, getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).height, 0.75f, 2f);
                     building.ReadPrefabs();
                     building.Generate();
                     building.Render();
                     buildingObj.transform.parent = buildingsObj.transform;
-                    buildingObj.transform.localPosition = new Vector3(scale * (2f * (endI + i) / 2f - (cityFrequency - 1)), 0, scale * (2f * (endJ + j) / 2f - (cityFrequency - 1)));
+                    buildingObj.transform.localPosition = new Vector3(scale * (2f * (endI + i) / 2f - (cityData.cityFrequency - 1)), 0, scale * (2f * (endJ + j) / 2f - (cityData.cityFrequency - 1)));
                     buildingObj.transform.localScale = Vector3.one * scale;
                 }
                 else if (getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).type == CityItemType.NonBuilding) {
                     GameObject gameObject = nonBuildingPrefabs[UnityEngine.Random.Range(0, nonBuildingPrefabs.Length)];
                     var obj = GameObject.Instantiate(gameObject, Vector3.zero, Quaternion.identity, nonBuildingsObj.transform);
-                    float scale = (float)DEFAULT_CITY_FREQUENCY / cityFrequency;
-                    obj.transform.localPosition = new Vector3(scale * (2f * i - (cityFrequency - 1)), 0, scale * (2f * j - (cityFrequency - 1)));
+                    float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
+                    obj.transform.localPosition = new Vector3(scale * (2f * i - (cityData.cityFrequency - 1)), 0, scale * (2f * j - (cityData.cityFrequency - 1)));
                     obj.transform.localScale = obj.transform.localScale * scale;
                 }
             }
