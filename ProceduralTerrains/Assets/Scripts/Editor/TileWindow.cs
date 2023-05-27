@@ -8,7 +8,7 @@ public class TileWindow : EditorWindow
     private MapGenerator.TileType tileType;
     private int xCoord;
     private int yCoord;
-    private TileProperties tileProperties;
+    private PropertiesTile tileProperties;
 
     public static TileWindow CreateTileWindow(MapGenerator mapGenerator)
     {
@@ -27,16 +27,16 @@ public class TileWindow : EditorWindow
 
         if (tileType == MapGenerator.TileType.NoiseTableland)
         {
-            if (tileProperties == null || !(tileProperties is PerlinNoiseProperties))
+            if (tileProperties == null || !(tileProperties is PropertiesNoise))
             {
-                tileProperties = new PerlinNoiseProperties();
+                tileProperties = new PropertiesNoise();
             }
         }
         if (tileType == MapGenerator.TileType.City)
         {
-            if (tileProperties == null || !(tileProperties is CityProperties))
+            if (tileProperties == null || !(tileProperties is PropertiesCity))
             {
-                tileProperties = new CityProperties();
+                tileProperties = new PropertiesCity();
             }
         }
 

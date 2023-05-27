@@ -205,9 +205,7 @@ public class Building : MonoBehaviour
                         }
                         if (j < length - 1 && floor.rooms[i, j + 1].roomType != Room.RoomType.Blank)
                         {
-                            Room room = floor.rooms[i, j];
-                            Wall wall = room.walls[1];
-                            wall.walType = Wall.WallType.Blank;
+                            floor.rooms[i, j].walls[1].walType = Wall.WallType.Blank;
                         }
                     }
                     if (!(f == floors.Length - 1 || i == 0 || floor.rooms[i - 1, j].roomType == Room.RoomType.Blank || i == width - 1 || floor.rooms[i + 1, j].roomType == Room.RoomType.Blank

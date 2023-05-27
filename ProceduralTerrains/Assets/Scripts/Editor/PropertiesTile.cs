@@ -1,4 +1,4 @@
-public abstract class TileProperties
+public abstract class PropertiesTile
 {
     public abstract void DrawGUI();
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PerlinNoiseData
   m_EditorClassIdentifier: 
   noiseScale: 40
-  numberOctaves: 4
+  numberOctaves: 6
   persistance: 0.196
   lacunarity: 3
   seed: 0

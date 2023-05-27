@@ -18,6 +18,9 @@ public class CityData : ScriptableObject
 
     public int startRoadItemsNumber = 1;
 
+    [Range(0f, 1f)]
+    public float roadChance = 0.5f;
+
     private void OnValidate()
     {
         cityFrequency = Mathf.RoundToInt(cityFrequency / 5f) * 5;

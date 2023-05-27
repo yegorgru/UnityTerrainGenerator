@@ -33,12 +33,12 @@ public class TileCity : Tile
         return chunk;
     }
 
-    static public RoadItem[,] GenerateRoadMap(int width, int length, int numberOfStartRoadItems)
+    static public RoadItem[,] GenerateRoadMap(int width, int length, CityData cityData)
     {
         RoadItem[,] roadMap = new RoadItem[width, length];
 
         Queue<Vector2Int> queueToProcess = new Queue<Vector2Int>();
-        if (numberOfStartRoadItems == 1)
+        if (cityData.startRoadItemsNumber == 1)
         {
             int x = width / 2;
             int y = length / 2;
@@ -63,7 +63,7 @@ public class TileCity : Tile
         }
         else
         {
-            for (int i = 0; i < numberOfStartRoadItems; ++i)
+            for (int i = 0; i < cityData.startRoadItemsNumber; ++i)
             {
                 int x = UnityEngine.Random.Range(0, width);
                 int y = UnityEngine.Random.Range(0, length);
@@ -88,7 +88,7 @@ public class TileCity : Tile
                 RoadItem right = v.y + 1 != length ? roadMap[v.x, v.y + 1] : new RoadItem();
                 RoadItem down = v.x != 0 ? roadMap[v.x - 1, v.y] : new RoadItem();
                 RoadItem left = v.y != 0 ? roadMap[v.x, v.y - 1] : new RoadItem();
-                roadItem.Process(up, right, down, left);
+                roadItem.Process(up, right, down, left, cityData.roadChance);
                 roadMap[v.x, v.y] = roadItem;
                 if (roadItem.IsUpRoad() && v.x + 1 != width && !up.IsProcessed())
                 {
@@ -479,7 +479,6 @@ public struct RoadItem
     private bool roadDown;
     private bool roadLeft;
     private bool isProcessed;
-    static private float newRoadChance = 0.5f;
 
     public RoadItem(bool roadUp = false, bool roadRight = false, bool roadDown = false, bool roadLeft = false, bool isProcessed = false)
     {
@@ -490,7 +489,7 @@ public struct RoadItem
         this.isProcessed = isProcessed;
     }
 
-    public void Process(RoadItem up, RoadItem right, RoadItem down, RoadItem left)
+    public void Process(RoadItem up, RoadItem right, RoadItem down, RoadItem left, float newRoadChance)
     {
         if (!up.IsProcessed())
         {
@@ -516,7 +515,7 @@ public struct RoadItem
         {
             roadLeft = true;
         }
-        if (!right.IsProcessed())
+        if (!right.IsProcessed()) 
         {
             roadRight = UnityEngine.Random.Range(0f, 1f) < newRoadChance;
         }

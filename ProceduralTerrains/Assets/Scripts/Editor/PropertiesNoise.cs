@@ -1,8 +1,7 @@
 using UnityEditor;
 using UnityEngine;
-using static Building;
 
-public class PerlinNoiseProperties : TileProperties
+public class PropertiesNoise : PropertiesTile
 {
     private static NoiseData noiseData;
     private static TerrainData terrainData;

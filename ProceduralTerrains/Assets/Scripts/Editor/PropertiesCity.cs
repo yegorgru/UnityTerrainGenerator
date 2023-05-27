@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CityProperties : TileProperties
+public class PropertiesCity : PropertiesTile
 {
     public override void DrawGUI()
     {

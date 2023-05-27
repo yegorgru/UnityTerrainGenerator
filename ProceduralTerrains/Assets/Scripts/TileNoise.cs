@@ -94,7 +94,7 @@ public class TileNoise : Tile
         material.SetTexture("_MainTex", texture);
         meshRenderer.material = material;
 
-        Mesh mesh = Utils.GenerateTerrainMesh(mapData.heightMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve, renderMode);
+        Mesh mesh = Utils.GenerateTerrainMesh(mapData.heightMap, terrainData, renderMode);
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
     }

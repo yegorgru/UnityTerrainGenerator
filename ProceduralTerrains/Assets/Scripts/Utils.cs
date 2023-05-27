@@ -77,9 +77,6 @@ public static class Utils
         }
         GameObject mergedObject = new GameObject("MergedObject");
         mergedObject.transform.parent = gameObject.transform;
-        //mergedObject.transform.localPosition = Vector3.zero;
-        //mergedObject.transform.localRotation = Quaternion.identity;
-        //mergedObject.transform.localScale = Vector3.one;
 
         MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();
         MeshRenderer mergedMeshRenderer = mergedObject.AddComponent<MeshRenderer>();
@@ -117,9 +114,9 @@ public static class Utils
         return TextureFromColourMap(colorMap, width, height);
     }
 
-    public static Mesh GenerateTerrainMesh(float[,] heightMap, float heightMultiplier, AnimationCurve curve, TileNoise.RenderMode renderMode)
+    public static Mesh GenerateTerrainMesh(float[,] heightMap, TerrainData terrainData, TileNoise.RenderMode renderMode)
     {
-        AnimationCurve heightCurve = new AnimationCurve(curve.keys);
+        AnimationCurve heightCurve = new AnimationCurve(terrainData.meshHeightCurve.keys);
         int width = heightMap.GetLength(0);
         int height = heightMap.GetLength(1);
         float topLeftX = (width - 1) / -2f;
@@ -135,7 +132,7 @@ public static class Utils
             {
                 if (renderMode == TileNoise.RenderMode.Mesh3d)
                 {
-                    meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x, y]) * heightMultiplier, topLeftZ - y);
+                    meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x, y]) * terrainData.meshHeightMultiplier, topLeftZ - y);
                 }
                 else
                 {

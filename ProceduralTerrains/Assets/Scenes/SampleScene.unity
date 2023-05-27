@@ -169,11 +169,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   floorSizePolicy: 1
   prefabsPath: Assets/Prefabs/MiddleDetailed
-  width: 10
-  length: 10
+  width: 5
+  length: 5
   cellUnitSize: 1
   numberOfFloors: 7
-  windowChance: 0.7
+  windowChance: 1
 --- !u!1 &753566182
 GameObject:
   m_ObjectHideFlags: 0
