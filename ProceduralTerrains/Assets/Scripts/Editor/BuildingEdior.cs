@@ -13,14 +13,12 @@ public class BuildingEditor : Editor
         if (GUILayout.Button("Generate"))
         {
             building.Clear();
-            building.ReadPrefabs();
             building.Generate();
             building.Render();
         }
         if (GUI.changed)
         {
             building.Clear();
-            building.ReadPrefabs();
             building.Generate();
             building.Render();
         }

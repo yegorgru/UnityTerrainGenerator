@@ -6,16 +6,6 @@ using UnityEngine;
 
 public class Building : MonoBehaviour
 {
-    private GameObject[] wallPrefabs;
-
-    private GameObject[] windowPrefabs;
-
-    private GameObject[] roofPrefabs;
-
-    private GameObject[] doorPrefabs;
-
-    private GameObject defaultRoofPrefab;
-
     public enum FloorSizePolicy
     {
         Constant,
@@ -55,19 +45,6 @@ public class Building : MonoBehaviour
         this.numberOfFloors = numberOfFloors;
         this.windowChance = windowChance;
         this.cellUnitSize = cellUnitSize;
-    }
-
-    public void ReadPrefabs()
-    {
-        wallPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Walls");
-        windowPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Windows");
-        roofPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Roofs");
-        doorPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Doors");
-        defaultRoofPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabsPath + "\\Roofs\\Default.prefab");
-        if(defaultRoofPrefab == null)
-        {
-            throw new Exception("Roofs folder must contain Default.prefab");
-        }
     }
 
     public void Generate()
@@ -222,6 +199,21 @@ public class Building : MonoBehaviour
 
     public void Render()
     {
+        GameObject[] wallPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Walls");
+
+        GameObject[] windowPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Windows");
+
+        GameObject[] roofPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Roofs");
+
+        GameObject[] doorPrefabs = Utils.ReadPrefabs(prefabsPath + "\\Doors");
+
+        GameObject defaultRoofPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabsPath + "\\Roofs\\Default.prefab");
+
+        if (defaultRoofPrefab == null)
+        {
+            throw new Exception("Roofs folder must contain Default.prefab");
+        }
+
         float offsetX = 0.5f * cellUnitSize * (1f - width);
         float offsetY = 0.5f * cellUnitSize * (1f - length);
         foreach (Floor floor in floors)

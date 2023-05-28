@@ -7,6 +7,7 @@ using UnityEngine;
 public static class Utils
 {
     public const int maxVerticesPerObject = 65536;
+    public const string MERGED_OBJ_NAME = "MergedObject";
 
     public static GameObject[] ReadPrefabs(string path)
     {
@@ -67,6 +68,23 @@ public static class Utils
 
             CreateMergedObject(gameObject, combineInstances, meshes[0].GetComponent<MeshRenderer>().sharedMaterial);
         }
+        RemoveRecoursively(gameObject.transform);
+    }
+
+    private static void RemoveRecoursively(Transform parent)
+    {
+        for (int i = parent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.name != MERGED_OBJ_NAME)
+            {
+                GameObject.DestroyImmediate(child.gameObject);
+            }
+            else
+            {
+                RemoveRecoursively(child);
+            }
+        }
     }
 
     private static void CreateMergedObject(GameObject gameObject, List<CombineInstance> combineInstances, Material material)
@@ -75,7 +93,7 @@ public static class Utils
         {
             return;
         }
-        GameObject mergedObject = new GameObject("MergedObject");
+        GameObject mergedObject = new GameObject(MERGED_OBJ_NAME);
         mergedObject.transform.parent = gameObject.transform;
 
         MeshFilter mergedMeshFilter = mergedObject.AddComponent<MeshFilter>();

@@ -9,6 +9,9 @@ public class PropertiesNoise : PropertiesTile
 
     private static RegionsData regionsData;
 
+    private static string pathToObjects;
+    private static int numberOfObjects;
+
     private static int blendingWidth = 50;
 
     private static Blending.BlendingType blendingType;
@@ -21,6 +24,9 @@ public class PropertiesNoise : PropertiesTile
         terrainData = (TerrainData)EditorGUILayout.ObjectField("Terrain Data", terrainData, typeof(TerrainData), false);
         regionsData = (RegionsData)EditorGUILayout.ObjectField("Regions Data", regionsData, typeof(RegionsData), false);
 
+        pathToObjects = EditorGUILayout.TextField("Path to objects", pathToObjects);
+        numberOfObjects = EditorGUILayout.IntField("Number of Objects", numberOfObjects);
+
         blendingWidth = EditorGUILayout.IntField("Blending width", blendingWidth);
         blendingType = (Blending.BlendingType)EditorGUILayout.EnumPopup("Blending type", blendingType);
         renderMode = (TileNoise.RenderMode)EditorGUILayout.EnumPopup("Render mode", renderMode);
@@ -31,7 +37,7 @@ public class PropertiesNoise : PropertiesTile
         Vector2Int coordinates = new Vector2Int(xCoord, yCoord);
         if(mapGenerator.CheckPosition(coordinates))
         {
-            Tile tile = TileNoise.GenerateTile(mapGenerator.GetHeightDictionary(), coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform, blendingWidth, blendingType, renderMode);
+            Tile tile = TileNoise.GenerateTile(mapGenerator.GetHeightDictionary(), coordinates, noiseData, terrainData, regionsData, mapGenerator.GetWidthOfRegion(), mapGenerator.GetLengthOfRegion(), mapGenerator.transform, blendingWidth, blendingType, renderMode, pathToObjects, numberOfObjects);
             mapGenerator.AddChunk(coordinates, tile);
         }
     }

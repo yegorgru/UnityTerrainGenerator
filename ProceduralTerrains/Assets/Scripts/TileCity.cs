@@ -357,7 +357,6 @@ public class TileCity : Tile
                     Building building = buildingObj.AddComponent<Building>();
                     float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
                     building.Initialize(cityData.floorSizePolicy, cityData.pathsToBuildings[UnityEngine.Random.Range(0, cityData.pathsToBuildings.Length)], endI - i + 1, endJ - j + 1, getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i, j).height, 0.75f, 2f);
-                    building.ReadPrefabs();
                     building.Generate();
                     building.Render();
                     buildingObj.transform.parent = buildingsObj.transform;

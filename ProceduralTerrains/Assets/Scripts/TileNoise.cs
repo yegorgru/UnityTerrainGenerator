@@ -14,13 +14,15 @@ public class TileNoise : Tile
 
     private const int size = 240;
 
+    private GameObject objContainer;
+
     public enum RenderMode
     {
         Mesh3d,
         Noise2d
     }
      
-    public static TileNoise GenerateTile(Dictionary<Vector2Int, float[,]> heigthMapDict,  Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform, int blendingWidth, Blending.BlendingType blendingType, RenderMode renderMode)
+    public static TileNoise GenerateTile(Dictionary<Vector2Int, float[,]> heigthMapDict,  Vector2Int coordinates, NoiseData noiseData, TerrainData terrainData, RegionsData regionsData, int widthOfRegion, int lengthOfRegion, Transform transform, int blendingWidth, Blending.BlendingType blendingType, RenderMode renderMode, string pathToObjects, int numberOfObjects)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
@@ -30,7 +32,7 @@ public class TileNoise : Tile
         TileNoise tile = new TileNoise(viewedChunkCoord, transform, terrainData, 100f, noiseData);
         float[,] heightMap = tile.GetHeightMap();
         tile.SetHeightMap(Blending.ApplyBlending(coordinates, blendingWidth, blendingType, in heigthMapDict, in heightMap));
-        tile.CreateMesh(tile.GenerateMapData(regionsData), renderMode);
+        tile.CreateMesh(tile.GenerateMapData(regionsData), renderMode, pathToObjects, numberOfObjects);
         return tile;
     }
 
@@ -55,6 +57,11 @@ public class TileNoise : Tile
 
         float[,] noiseMap = Noise.GenerateNoise(noiseData, position, true);
         heightMap = noiseMap;
+
+        objContainer = new GameObject("Non-buildings object");
+        objContainer.transform.parent = meshObject.transform;
+        objContainer.transform.localPosition = Vector3.zero;
+        objContainer.transform.localScale = Vector3.one;
     }
 
     private MapData GenerateMapData(RegionsData regionsData)
@@ -79,7 +86,7 @@ public class TileNoise : Tile
         return new MapData(heightMap, colourMap);
     }
 
-    public void CreateMesh(MapData mapData, RenderMode renderMode)
+    public void CreateMesh(MapData mapData, RenderMode renderMode, string pathToObjects, int numberOfObjects)
     {
         Texture2D texture;
         if (renderMode == RenderMode.Mesh3d)
@@ -97,6 +104,22 @@ public class TileNoise : Tile
         Mesh mesh = Utils.GenerateTerrainMesh(mapData.heightMap, terrainData, renderMode);
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
+
+        GameObject[] objPrefabs = Utils.ReadPrefabs(pathToObjects);
+
+        var vertices = mesh.vertices;
+
+        for(int i = 0; i < numberOfObjects; ++i)
+        {
+            int idx = UnityEngine.Random.Range(0, vertices.Length);
+            GameObject gameObject = objPrefabs[UnityEngine.Random.Range(0, objPrefabs.Length)];
+            var obj = GameObject.Instantiate(gameObject, Vector3.zero, Quaternion.identity, objContainer.transform);
+            float scale = 5;
+            obj.transform.localPosition = vertices[idx];
+            obj.transform.localScale = obj.transform.localScale * scale;
+        }
+
+        Utils.MergeChildMeshesByMaterialColor(objContainer);
     }
 }
 
