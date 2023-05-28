@@ -20,6 +20,7 @@ MonoBehaviour:
   floorSizePolicy: 2
   startRoadItemsNumber: 1
   pathToRoads: Assets\Prefabs\Roads
-  pathToBuildings: Assets\Prefabs\MiddleDetailed
+  pathsToBuildings:
+  - Assets\Prefabs\MiddleDetailed
   pathToNonBuildings: Assets\Prefabs\NonBuildings
   roadChance: 0.5

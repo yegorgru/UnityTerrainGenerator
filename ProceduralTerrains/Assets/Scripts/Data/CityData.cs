@@ -19,7 +19,7 @@ public class CityData : ScriptableObject
     public int startRoadItemsNumber = 1;
 
     public string pathToRoads;
-    public string pathToBuildings;
+    public string[] pathsToBuildings;
     public string pathToNonBuildings;
 
     [Range(0f, 1f)]
