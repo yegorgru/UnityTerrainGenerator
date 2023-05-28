@@ -16,6 +16,9 @@ public static class Blending
         if(blendingType  == BlendingType.None) {
             return center;
         }
+        blendingWidth = Mathf.Max(blendingWidth, 0);
+        blendingWidth = Mathf.Min(blendingWidth, 100);
+
         float[,] result = (float[,])center.Clone();
 
         float[,] left = null;
@@ -30,6 +33,9 @@ public static class Blending
         float[,] down = null;
         bool isDown = dict.TryGetValue(new Vector2Int(centerCoord.x, centerCoord.y - 1), out down);
 
+        float[] values = new float[2];
+        float[] coeffs = new float[2];
+
         for (int i = 0; i < result.GetLength(0); ++i)
         {
             for (int j = 0; j < result.GetLength(1); ++j)
@@ -38,6 +44,7 @@ public static class Blending
                 float topValue = isTop ? top[i, top.GetLength(1) - 1] : 0f;
                 float leftValue = isLeft ? left[left.GetLength(0) - 1, j] : 0f;
                 float rightValue = isRight ? right[0, j] : 0f;
+                int counter = 0;
                 if (j == result.GetLength(1) - 1 && isDown)
                 {
                     result[i, j] = downValue;
@@ -58,39 +65,35 @@ public static class Blending
                     result[i, j] = rightValue;
                     continue;
                 }
-                int counter = 0;
-                float sum = 0f;
                 if (i <= blendingWidth && isLeft)
                 {
-                    float coefficient = ((float)blendingWidth - i) / blendingWidth;
-                    sum += Interpolate(center[i, j], leftValue, coefficient, blendingType);
-                    counter++;
+                    coeffs[counter] = ((float)blendingWidth - i) / blendingWidth;
+                    values[counter++] = leftValue;
                 }
                 if (i >= result.GetLength(0) - blendingWidth && isRight)
                 {
-                    float coefficient = ((float)blendingWidth - result.GetLength(0) + 1 + i) / blendingWidth;
-                    sum += Interpolate(center[i, j], rightValue, coefficient, blendingType);
-                    counter++;
+                    coeffs[counter] = ((float)blendingWidth - result.GetLength(0) + 1 + i) / blendingWidth;
+                    values[counter++] = rightValue;
                 }
                 if (j <= blendingWidth && isTop)
                 {
-                    float coefficient = ((float)blendingWidth - j) / blendingWidth;
-                    sum += Interpolate(center[i, j], topValue, coefficient, blendingType);
-                    counter++;
+                    coeffs[counter] = ((float)blendingWidth - j) / blendingWidth;
+                    values[counter++] = topValue;
                 }
                 if (j >= result.GetLength(1) - blendingWidth && isDown)
                 {
-                    float coefficient = ((float)j + 1 - result.GetLength(1) + blendingWidth) / blendingWidth;
-                    sum += Interpolate(center[i, j], downValue, coefficient, blendingType);
-                    counter++;
+                    coeffs[counter] = ((float)j + 1 - result.GetLength(1) + blendingWidth) / blendingWidth;
+                    values[counter++] = downValue;
                 }
-                if (counter != 0)
+                if(counter == 1)
                 {
-                    result[i, j] = sum / counter;
+                    result[i, j] = Interpolate(center[i, j], values[0], coeffs[0], blendingType);
                 }
-                else
+                else if (counter == 2)
                 {
-                    result[i, j] = center[i, j];
+                    float value1 = Interpolate(center[i, j], values[0], coeffs[0], blendingType);
+                    float value2 = Interpolate(center[i, j], values[1], coeffs[1], blendingType);
+                    result[i, j] = Interpolate(value1, value2, coeffs[1] / (coeffs[0] + coeffs[1]), blendingType);
                 }
             }
         }

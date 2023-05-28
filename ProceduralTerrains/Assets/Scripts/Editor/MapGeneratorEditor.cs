@@ -20,9 +20,14 @@ public class MapGeneratorEditor : Editor
         {
             mapGen.GenerateCityMap();
         }
-        if (mapGen.IsGenerated() && GUILayout.Button("Add item"))
+        if (mapGen.IsGenerated() && GUILayout.Button("Add tile"))
         {
-            TileWindow window = TileWindow.CreateTileWindow(mapGen);
+            TileWindow window = TileWindow.CreateTileWindow(mapGen, TileWindow.Mode.Create);
+            window.Show();
+        }
+        if (mapGen.IsGenerated() && GUILayout.Button("Remove tile"))
+        {
+            TileWindow window = TileWindow.CreateTileWindow(mapGen, TileWindow.Mode.Remove);
             window.Show();
         }
     }

@@ -101,7 +101,7 @@ public class MapGenerator : MonoBehaviour
         return heightMapDictionary;
     }
 
-    public void RemoveChunk(Vector2Int coordinates)
+    public void RemoveTile(Vector2Int coordinates)
     {
         if(terrainChunkDictionary.ContainsKey(coordinates))
         {
