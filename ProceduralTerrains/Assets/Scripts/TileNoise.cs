@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TileNoise : Tile
 {
@@ -44,14 +45,13 @@ public class TileNoise : Tile
         position = coord * size;
         Vector3 position3 = new Vector3(coord.x, 0, coord.y) * sizeScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
-        meshObject = new GameObject("Perline Noise Tile");
+        meshObject = new GameObject("Noise Tile " + coord.ToString());
         meshRenderer = meshObject.AddComponent<MeshRenderer>();
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshObject.transform.position = position3;
         meshRenderer.material = material;
 
-        meshObject.transform.parent = parent;
         meshObject.transform.localScale = Vector3.one * 1f / size * sizeScale;
         meshObject.SetActive(true);
 
@@ -62,6 +62,9 @@ public class TileNoise : Tile
         objContainer.transform.parent = meshObject.transform;
         objContainer.transform.localPosition = Vector3.zero;
         objContainer.transform.localScale = Vector3.one;
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.MoveGameObjectToScene(meshObject, currentScene);
     }
 
     private MapData GenerateMapData(RegionsData regionsData)

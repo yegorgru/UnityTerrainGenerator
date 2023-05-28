@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static TileCity;
 
 public class MapGenerator : MonoBehaviour
@@ -18,7 +20,7 @@ public class MapGenerator : MonoBehaviour
 
     private bool cityMapGenerated = false;
 
-    private Dictionary<Vector2Int, Tile> terrainChunkDictionary = new Dictionary<Vector2Int, Tile>();
+    private Dictionary<Vector2Int, int> terrainChunkDictionary = new Dictionary<Vector2Int, int>();
     private Dictionary<Vector2Int, float[,]> heightMapDictionary = new Dictionary<Vector2Int, float[,]>();
 
     private RoadItem[,] roadItems;
@@ -76,6 +78,11 @@ public class MapGenerator : MonoBehaviour
             Transform child = transform.GetChild(0);
             GameObject.DestroyImmediate(child.gameObject);
         }
+        List<Vector2Int> keys = new List<Vector2Int>(terrainChunkDictionary.Keys);
+        foreach(var item in keys)
+        {
+            RemoveTile(item);
+        }
         terrainChunkDictionary.Clear();
         heightMapDictionary.Clear();
     }
@@ -92,8 +99,9 @@ public class MapGenerator : MonoBehaviour
 
     public void AddChunk(Vector2Int coordinates, Tile tile)
     {
-        terrainChunkDictionary.Add(coordinates, tile);
+        terrainChunkDictionary.Add(coordinates, tile.meshObject.GetInstanceID());
         heightMapDictionary[coordinates] = tile.GetHeightMap();
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
     }
 
     public Dictionary<Vector2Int, float[,]> GetHeightDictionary()
@@ -105,9 +113,19 @@ public class MapGenerator : MonoBehaviour
     {
         if(terrainChunkDictionary.ContainsKey(coordinates))
         {
-            terrainChunkDictionary[coordinates].Remove();
+            int id;
+            terrainChunkDictionary.TryGetValue(coordinates, out id);
+            foreach (GameObject obj in FindObjectsOfType<GameObject>())
+            {
+                if (obj.GetInstanceID() == id)
+                {
+                    GameObject.DestroyImmediate(obj);
+                    break;
+                }
+            }
         }
         terrainChunkDictionary.Remove(coordinates);
+        heightMapDictionary.Remove(coordinates);
     }
 
     public CityData GetCityData()

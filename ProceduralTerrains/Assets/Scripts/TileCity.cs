@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using static TileCity;
 
@@ -253,13 +254,11 @@ public class TileCity : Tile
         Vector3 position3 = new Vector3(viewedCoord.x, 0, viewedCoord.y) * sizeScale + new Vector3(parent.transform.position.x, 0, parent.transform.position.z);
 
         meshObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        meshObject.name = "City Tile";
+        meshObject.name = "City Tile " + coord.ToString();
         MeshRenderer planeMeshRenderer = meshObject.GetComponent<MeshRenderer>();
         Material planeMaterial = new Material(Shader.Find("Standard"));
         planeMaterial.color = cityData.sidewalkColor;
         planeMeshRenderer.sharedMaterial = planeMaterial;
-
-        meshObject.transform.parent = parent;
 
         meshObject.transform.localPosition = position3;
         meshObject.transform.localRotation = Quaternion.identity;
@@ -288,6 +287,9 @@ public class TileCity : Tile
         roadsObj = new GameObject("Roads object");
         roadsObj.transform.parent = meshObject.transform;
         roadsObj.transform.localPosition = Vector3.zero;
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.MoveGameObjectToScene(meshObject, currentScene);
     }
 
     private void PlaceRoadItems(RoadItem[,] roadItems)

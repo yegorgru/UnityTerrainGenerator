@@ -11,6 +11,10 @@ public static class Utils
 
     public static GameObject[] ReadPrefabs(string path)
     {
+        if (path == null)
+        {
+            return null;
+        }
         string[] guids = AssetDatabase.FindAssets("t:GameObject", new[] { path });
         GameObject[] objects = new GameObject[guids.Length];
         int objCounter = 0;
