@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public static class Blending
@@ -7,24 +8,14 @@ public static class Blending
     {
         None,
         Linear,
-        Cosine,
-        Cubic,
-        Bilinear,
+        Smooth
     }
 
-    public static float[,] ApplyBlending(Vector2Int center, int blendingWidth, BlendingType blendingType, in Dictionary<Vector2Int, float[,]> dict, in float[,] centerHeightMap)
+    public static float[,] ApplyBlending(Vector2Int centerCoord, int blendingWidth, BlendingType blendingType, in Dictionary<Vector2Int, float[,]> dict, in float[,] center)
     {
-        switch (blendingType)
-        {
-            case BlendingType.Linear:
-                return LinearBlending(center, blendingWidth, dict, centerHeightMap);
-            default:
-                return centerHeightMap;
+        if(blendingType  == BlendingType.None) {
+            return center;
         }
-    }
-
-    private static float[,] LinearBlending(Vector2Int centerCoord, int blendingWidth, in Dictionary<Vector2Int, float[,]> dict, in float[,] center)
-    {
         float[,] result = (float[,])center.Clone();
 
         float[,] left = null;
@@ -52,7 +43,7 @@ public static class Blending
                     result[i, j] = downValue;
                     continue;
                 }
-                else if(j == 0 && isTop)
+                else if (j == 0 && isTop)
                 {
                     result[i, j] = topValue;
                     continue;
@@ -71,25 +62,29 @@ public static class Blending
                 float sum = 0f;
                 if (i <= blendingWidth && isLeft)
                 {
-                    sum += ((blendingWidth - i) * leftValue + i * center[i, j]) / blendingWidth;
+                    float coefficient = ((float)blendingWidth - i) / blendingWidth;
+                    sum += Interpolate(center[i, j], leftValue, coefficient, blendingType);
                     counter++;
                 }
-                if(i >= result.GetLength(0) - blendingWidth && isRight)
+                if (i >= result.GetLength(0) - blendingWidth && isRight)
                 {
-                    sum += ((blendingWidth - result.GetLength(0) + 1 + i) * rightValue + (result.GetLength(0) - 1 - i) * center[i, j]) / blendingWidth;
+                    float coefficient = ((float)blendingWidth - result.GetLength(0) + 1 + i) / blendingWidth;
+                    sum += Interpolate(center[i, j], rightValue, coefficient, blendingType);
                     counter++;
                 }
                 if (j <= blendingWidth && isTop)
                 {
-                    sum += ((blendingWidth - j) * topValue + j * center[i, j]) / blendingWidth;
+                    float coefficient = ((float)blendingWidth - j) / blendingWidth;
+                    sum += Interpolate(center[i, j], topValue, coefficient, blendingType);
                     counter++;
                 }
                 if (j >= result.GetLength(1) - blendingWidth && isDown)
                 {
-                    sum += ((result.GetLength(1) - 1 - j) * center[i, j] + (j + 1 - result.GetLength(1) + blendingWidth) * downValue) / blendingWidth;
+                    float coefficient = ((float)j + 1 - result.GetLength(1) + blendingWidth) / blendingWidth;
+                    sum += Interpolate(center[i, j], downValue, coefficient, blendingType);
                     counter++;
                 }
-                if(counter != 0)
+                if (counter != 0)
                 {
                     result[i, j] = sum / counter;
                 }
@@ -100,5 +95,10 @@ public static class Blending
             }
         }
         return result;
+    }
+
+    private static float Interpolate(float a, float b, float coefficient, BlendingType blendingType)
+    {
+        return blendingType == BlendingType.Linear ? Mathf.Lerp(a, b, coefficient) : Mathf.SmoothStep(a, b, coefficient);
     }
 }
