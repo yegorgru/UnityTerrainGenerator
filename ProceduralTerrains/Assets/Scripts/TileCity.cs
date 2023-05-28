@@ -1,11 +1,21 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static TileCity;
 
 public class TileCity : Tile
 {
+    public enum CityDataPolicy
+    {
+        Global,
+        Local
+    }
+
+    private CityDataPolicy cityDataPolicy;
+
     public Vector2 position;
 
     private GameObject[] nonBuildingPrefabs;
@@ -15,27 +25,31 @@ public class TileCity : Tile
 
     private Vector2Int coord;
     private CityData cityData;
+    private RoadItem[,] roadItemsLocal;
 
     public const int UNITS_PER_ROAD_ITEM = 5;
     public const int DEFAULT_CITY_FREQUENCY = 50;
 
-    static public TileCity GenerateTile(Vector2Int coordinates, int widthOfRegion, int lengthOfRegion, Transform parent, RoadItem[,] roadItems, CityItem[,] cityItems, CityData cityData)
+    static public TileCity GenerateTile(Vector2Int coordinates, int widthOfRegion, int lengthOfRegion, Transform parent, RoadItem[,] roadItems, CityItem[,] cityItems, CityData cityData, CityData localCityData)
     {
         float xOffset = widthOfRegion / -2f + 0.5f;
         float yOffset = lengthOfRegion / -2f + 0.5f;
 
         Vector2 viewedChunkCoord = new Vector2(xOffset + coordinates.x, yOffset + coordinates.y);
 
-        TileCity chunk = new TileCity(coordinates, viewedChunkCoord, parent, 100f, cityData);
+        TileCity chunk = new TileCity(coordinates, viewedChunkCoord, parent, 100f, cityData, localCityData);
         chunk.PlaceRoadItems(roadItems);
         chunk.PlaceNonRoads(cityItems);
 
         return chunk;
     }
 
-    static public RoadItem[,] GenerateRoadMap(int width, int length, CityData cityData)
+    static public RoadItem[,] GenerateRoadMap(int width, int length, CityData cityData, bool useBounds)
     {
         RoadItem[,] roadMap = new RoadItem[width, length];
+
+        int[] widthBounds = { useBounds ? 0 : 1, useBounds ? width : width - 1 };
+        int[] lengthBounds = { useBounds ? 0 : 1, useBounds ? length : length - 1 };
 
         Queue<Vector2Int> queueToProcess = new Queue<Vector2Int>();
         if (cityData.startRoadItemsNumber == 1)
@@ -44,34 +58,19 @@ public class TileCity : Tile
             int y = length / 2;
             roadMap[x, y] = RoadItem.CreateStartRoadItem();
 
-            if (x + 1 < width)
-            {
-                queueToProcess.Enqueue(new Vector2Int(x + 1, y));
-            }
-            if (x - 1 >= 0)
-            {
-                queueToProcess.Enqueue(new Vector2Int(x - 1, y));
-            }
-            if (y + 1 < length)
-            {
-                queueToProcess.Enqueue(new Vector2Int(x, y + 1));
-            }
-            if (y - 1 >= 0)
-            {
-                queueToProcess.Enqueue(new Vector2Int(x, y - 1));
-            }
+            queueToProcess.Enqueue(new Vector2Int(x, y));
         }
         else
         {
             for (int i = 0; i < cityData.startRoadItemsNumber; ++i)
             {
-                int x = UnityEngine.Random.Range(0, width);
-                int y = UnityEngine.Random.Range(0, length);
+                int x = UnityEngine.Random.Range(widthBounds[0], widthBounds[1]);
+                int y = UnityEngine.Random.Range(lengthBounds[0], lengthBounds[1]);
+                
                 roadMap[x, y] = new RoadItem();
                 queueToProcess.Enqueue(new Vector2Int(x, y));
             }
         }
-
 
         while (queueToProcess.Count != 0)
         {
@@ -84,25 +83,25 @@ public class TileCity : Tile
                 {
                     continue;
                 }
-                RoadItem up = v.x + 1 != width ? roadMap[v.x + 1, v.y] : new RoadItem();
-                RoadItem right = v.y + 1 != length ? roadMap[v.x, v.y + 1] : new RoadItem();
-                RoadItem down = v.x != 0 ? roadMap[v.x - 1, v.y] : new RoadItem();
-                RoadItem left = v.y != 0 ? roadMap[v.x, v.y - 1] : new RoadItem();
+                RoadItem up = v.x + 1 != widthBounds[1] ? roadMap[v.x + 1, v.y] : new RoadItem();
+                RoadItem right = v.y + 1 != lengthBounds[1] ? roadMap[v.x, v.y + 1] : new RoadItem();
+                RoadItem down = v.x != widthBounds[0] ? roadMap[v.x - 1, v.y] : new RoadItem();
+                RoadItem left = v.y != lengthBounds[0] ? roadMap[v.x, v.y - 1] : new RoadItem();
                 roadItem.Process(up, right, down, left, cityData.roadChance);
                 roadMap[v.x, v.y] = roadItem;
-                if (roadItem.IsUpRoad() && v.x + 1 != width && !up.IsProcessed())
+                if (roadItem.IsUpRoad() && v.x + 1 != widthBounds[1] && !up.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x + 1, v.y));
                 }
-                if (roadItem.IsRightRoad() && v.y + 1 != length && !right.IsProcessed())
+                if (roadItem.IsRightRoad() && v.y + 1 != lengthBounds[1] && !right.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x, v.y + 1));
                 }
-                if (roadItem.IsDownRoad() && v.x != 0 && !down.IsProcessed())
+                if (roadItem.IsDownRoad() && v.x != widthBounds[0] && !down.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x - 1, v.y));
                 }
-                if (roadItem.IsLeftRoad() && v.y != 0 && !left.IsProcessed())
+                if (roadItem.IsLeftRoad() && v.y != lengthBounds[0] && !left.IsProcessed())
                 {
                     queueToProcessNext.Enqueue(new Vector2Int(v.x, v.y - 1));
                 }
@@ -112,9 +111,10 @@ public class TileCity : Tile
         return roadMap;
     }
 
-    static public CityItem[,] GenerateCityItemsMap(RoadItem[,] roadItems, CityData cityData)
+    static public CityItem[,] GenerateCityItemsMap(RoadItem[,] roadItems, CityData cityData, bool useBounds)
     {
         CityItem[,] cityItems = new CityItem[roadItems.GetLength(0) * UNITS_PER_ROAD_ITEM, roadItems.GetLength(1) * UNITS_PER_ROAD_ITEM];
+
         for (int i = 0; i < roadItems.GetLength(1); ++i)
         {
             for (int j = 0; j < roadItems.GetLength(0); ++j)
@@ -158,24 +158,28 @@ public class TileCity : Tile
                 }
             }
         }
-        for (int i = 0; i < cityItems.GetLength(1); ++i)
+
+        int[] widthBounds = { useBounds ? 0 : 1, useBounds ? cityItems.GetLength(1) : cityItems.GetLength(1) - 1 };
+        int[] lengthBounds = { useBounds ? 0 : 1, useBounds ? cityItems.GetLength(0) : cityItems.GetLength(0) - 1 };
+
+        for (int i = widthBounds[0]; i < widthBounds[1]; ++i)
         {
-            for (int j = 0; j < cityItems.GetLength(0); ++j)
+            for (int j = lengthBounds[0]; j < lengthBounds[1]; ++j)
             {
                 if (cityItems[j, i].type == CityItemType.Road)
                 {
                     continue;
                 }
-                if (i > 0 && cityItems[j, i - 1].type == CityItemType.Building)
+                if (i > widthBounds[0] && cityItems[j, i - 1].type == CityItemType.Building)
                 {
-                    if (j > 0 && cityItems[j - 1, i - 1].type == CityItemType.Building)
+                    if (j > lengthBounds[0] && cityItems[j - 1, i - 1].type == CityItemType.Building)
                     {
                         cityItems[j, i] = cityItems[j - 1, i].type == CityItemType.Building ? CityItem.CreateBuilding(cityItems[j - 1, i].height) : CityItem.CreateNone();
                     }
-                    else // j > 0 && cityItems[j - 1, i - 1] != CityItem.Building || j == 0
+                    else
                     {
                         int lengthIt = j;
-                        while (lengthIt < cityItems.GetLength(0) && cityItems[lengthIt, i - 1].type == CityItemType.Building)
+                        while (lengthIt < lengthBounds[1] && cityItems[lengthIt, i - 1].type == CityItemType.Building)
                         {
                             ++lengthIt;
                         }
@@ -198,9 +202,9 @@ public class TileCity : Tile
                         }
                     }
                 }
-                else if (i > 0 && cityItems[j, i - 1].type != CityItemType.Building)
+                else if (i > widthBounds[0] && cityItems[j, i - 1].type != CityItemType.Building)
                 {
-                    if (j < cityItems.GetLength(0) - 1 && cityItems[j + 1, i - 1].type == CityItemType.Building || j > 0 && cityItems[j - 1, i - 1].type == CityItemType.Building)
+                    if (j < lengthBounds[1] - 1 && cityItems[j + 1, i - 1].type == CityItemType.Building || j > lengthBounds[0] && cityItems[j - 1, i - 1].type == CityItemType.Building)
                     {
                         cityItems[j, i] = CityItem.CreateNone();
                     }
@@ -210,7 +214,7 @@ public class TileCity : Tile
                         cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < cityData.buildingChance ? CityItem.CreateBuilding(height) : CityItem.CreateNone();
                     }
                 }
-                else // i == 0
+                else
                 {
                     int height = j > 1 && cityItems[j - 1, i].type == CityItemType.Building ? cityItems[j - 1, i].height : UnityEngine.Random.Range(1, cityData.maxNumberOfFloors + 1);
                     cityItems[j, i] = UnityEngine.Random.Range(0f, 1f) < cityData.buildingChance ? CityItem.CreateBuilding(height) : CityItem.CreateNone();
@@ -224,9 +228,17 @@ public class TileCity : Tile
         return cityItems;
     }
 
-    private TileCity(Vector2Int coord, Vector2 viewedCoord, Transform parent, float sizeScale, CityData cityData)
+    private TileCity(Vector2Int coord, Vector2 viewedCoord, Transform parent, float sizeScale, CityData cityData, CityData cityDataLocal)
     {
-        this.cityData = cityData;
+        if(cityDataLocal != null) {
+            this.cityDataPolicy = CityDataPolicy.Local;
+            this.cityData = cityDataLocal;
+        }
+        else
+        {
+            this.cityData = cityData;
+            this.cityDataPolicy = CityDataPolicy.Global;
+        }
 
         heightMap = new float[Noise.NOISE_MAP_WIDTH, Noise.NOISE_MAP_WIDTH];
         this.coord = coord;
@@ -250,7 +262,7 @@ public class TileCity : Tile
 
         meshObject.SetActive(true);
 
-        nonBuildingPrefabs = Utils.ReadPrefabs("Assets\\Prefabs\\NonBuildings");
+        nonBuildingPrefabs = Utils.ReadPrefabs(cityData.pathToNonBuildings);
 
         nonBuildingsObj = new GameObject("Non-buildings object");
         nonBuildingsObj.transform.parent = meshObject.transform;
@@ -267,13 +279,21 @@ public class TileCity : Tile
 
     private void PlaceRoadItems(RoadItem[,] roadItems)
     {
+        RoadItem[,] roadItemsToUse = roadItems;
         int offsetI = coord.x * cityData.cityFrequency / UNITS_PER_ROAD_ITEM;
         int offsetJ = coord.y * cityData.cityFrequency / UNITS_PER_ROAD_ITEM;
+        if (cityDataPolicy == CityDataPolicy.Local)
+        {
+            roadItemsToUse = GenerateRoadMap(cityData.cityFrequency / UNITS_PER_ROAD_ITEM, cityData.cityFrequency / UNITS_PER_ROAD_ITEM, cityData, false);
+            this.roadItemsLocal = roadItemsToUse;
+            offsetI = 0;
+            offsetJ = 0;
+        }
         for (int i = 0; i < cityData.cityFrequency / (int)UNITS_PER_ROAD_ITEM; ++i)
         {
             for (int j = 0; j < cityData.cityFrequency / (int)UNITS_PER_ROAD_ITEM; ++j)
             {
-                GameObject road = InstantiateRoadItem(roadItems[j + offsetJ, i + offsetI], "Assets\\Prefabs\\Roads", roadsObj.transform);
+                GameObject road = InstantiateRoadItem(roadItemsToUse[j + offsetJ, i + offsetI], cityData.pathToRoads, roadsObj.transform);
                 if (road != null)
                 {
                     float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
@@ -292,31 +312,38 @@ public class TileCity : Tile
 
     private void PlaceNonRoads(CityItem[,] cityItems)
     {
+        CityItem[,] cityItemsToUse = cityItems;
         int offsetI = coord.x * cityData.cityFrequency;
         int offsetJ = coord.y * cityData.cityFrequency;
+        if (cityDataPolicy == CityDataPolicy.Local)
+        {
+            cityItemsToUse = GenerateCityItemsMap(this.roadItemsLocal, cityData, false);
+            offsetI = 0;
+            offsetJ = 0;
+        }
         for (int i = 0; i < cityData.cityFrequency; ++i)
         {
             for (int j = 0; j < cityData.cityFrequency; ++j)
             {
-                if (getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).type == CityItemType.Building)
+                if (getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i, j).type == CityItemType.Building)
                 {
-                    if (j > 0 && getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j - 1).type == CityItemType.Building || i > 0 && getCityItemWithOffset(cityItems, offsetI, offsetJ, i - 1, j).type == CityItemType.Building) {
+                    if (j > 0 && getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i, j - 1).type == CityItemType.Building || i > 0 && getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i - 1, j).type == CityItemType.Building) {
                         continue;
                     }
                     int endJ = j;
                     int endI = i;
-                    while(endJ + 1 < cityData.cityFrequency && getCityItemWithOffset(cityItems, offsetI, offsetJ, i, endJ + 1).type == CityItemType.Building)
+                    while(endJ + 1 < cityData.cityFrequency && getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i, endJ + 1).type == CityItemType.Building)
                     {
                         ++endJ;
                     }
-                    while (endI + 1 < cityData.cityFrequency && getCityItemWithOffset(cityItems, offsetI, offsetJ, endI + 1, j).type == CityItemType.Building)
+                    while (endI + 1 < cityData.cityFrequency && getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, endI + 1, j).type == CityItemType.Building)
                     {
                         ++endI;
                     }
                     GameObject buildingObj = new GameObject();
                     Building building = buildingObj.AddComponent<Building>();
                     float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
-                    building.Initialize(cityData.floorSizePolicy, "Assets/Prefabs/MiddleDetailed", endI - i + 1, endJ - j + 1, getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).height, 0.75f, 2f);
+                    building.Initialize(cityData.floorSizePolicy, cityData.pathToBuildings, endI - i + 1, endJ - j + 1, getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i, j).height, 0.75f, 2f);
                     building.ReadPrefabs();
                     building.Generate();
                     building.Render();
@@ -324,7 +351,7 @@ public class TileCity : Tile
                     buildingObj.transform.localPosition = new Vector3(scale * (2f * (endI + i) / 2f - (cityData.cityFrequency - 1)), 0, scale * (2f * (endJ + j) / 2f - (cityData.cityFrequency - 1)));
                     buildingObj.transform.localScale = Vector3.one * scale;
                 }
-                else if (getCityItemWithOffset(cityItems, offsetI, offsetJ, i, j).type == CityItemType.NonBuilding) {
+                else if (getCityItemWithOffset(cityItemsToUse, offsetI, offsetJ, i, j).type == CityItemType.NonBuilding) {
                     GameObject gameObject = nonBuildingPrefabs[UnityEngine.Random.Range(0, nonBuildingPrefabs.Length)];
                     var obj = GameObject.Instantiate(gameObject, Vector3.zero, Quaternion.identity, nonBuildingsObj.transform);
                     float scale = (float)DEFAULT_CITY_FREQUENCY / cityData.cityFrequency;
@@ -470,7 +497,6 @@ public struct RoadItem
         roadItem.roadDown = true;
         roadItem.roadRight = true;
         roadItem.roadLeft = true;
-        roadItem.isProcessed = true;
         return roadItem;
     }
 

@@ -4,12 +4,16 @@ using UnityEngine;
 public class PropertiesNoise : PropertiesTile
 {
     private static NoiseData noiseData;
+
     private static TerrainData terrainData;
+
     private static RegionsData regionsData;
 
-    private int blendingWidth = 50;
-    private Blending.BlendingType blendingType;
-    private TileNoise.RenderMode renderMode;
+    private static int blendingWidth = 50;
+
+    private static Blending.BlendingType blendingType;
+
+    private static TileNoise.RenderMode renderMode;
 
     public override void DrawGUI()
     {

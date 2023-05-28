@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e3103b87b85ed94a983b6ff3e989c02, type: 3}
-  m_Name: CityData
+  m_Name: CityDataCountry
   m_EditorClassIdentifier: 
   cityFrequency: 50
-  buildingChance: 0.5
+  buildingChance: 0.1
   nonBuildingChance: 0.5
-  maxNumberOfFloors: 5
-  sidewalkColor: {r: 0.12322002, g: 0.6698113, b: 0.14198704, a: 1}
+  maxNumberOfFloors: 3
+  sidewalkColor: {r: 0.12896048, g: 0.3962264, b: 0.13850573, a: 1}
   floorSizePolicy: 2
   startRoadItemsNumber: 1
   pathToRoads: Assets\Prefabs\Roads
   pathToBuildings: Assets\Prefabs\MiddleDetailed
   pathToNonBuildings: Assets\Prefabs\NonBuildings
-  roadChance: 0.5
+  roadChance: 0.52
