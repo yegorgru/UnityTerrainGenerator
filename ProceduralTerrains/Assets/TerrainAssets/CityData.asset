@@ -21,6 +21,7 @@ MonoBehaviour:
   startRoadItemsNumber: 1
   pathToRoads: Assets\Prefabs\Roads
   pathsToBuildings:
+  - Assets\Prefabs\BuildingStyle2
   - Assets\Prefabs\MiddleDetailed
   pathToNonBuildings: Assets\Prefabs\NonBuildings
   roadChance: 0.5

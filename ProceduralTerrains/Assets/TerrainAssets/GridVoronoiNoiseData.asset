@@ -15,5 +15,5 @@ MonoBehaviour:
   seed: 0
   gridFrequency: 10
   persistance: 0.5
-  numberOctaves: 5
+  numberOctaves: 3
   distanceType: 0

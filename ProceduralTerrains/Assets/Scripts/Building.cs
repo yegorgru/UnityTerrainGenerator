@@ -13,8 +13,17 @@ public class Building : MonoBehaviour
         Random
     }
 
+    public enum ElementsGenerationPolicy
+    {
+        Linear,
+        Random
+    }
+
     [SerializeField]
     private FloorSizePolicy floorSizePolicy = FloorSizePolicy.Constant;
+
+    [SerializeField]
+    private ElementsGenerationPolicy elementsGenerationPolicy = ElementsGenerationPolicy.Random;
 
     [SerializeField]
     private string prefabsPath;
@@ -36,9 +45,10 @@ public class Building : MonoBehaviour
 
     private Floor[] floors;
 
-    public void Initialize(FloorSizePolicy floorSizePolicy, string prefabsPath, int width, int length, int numberOfFloors, float windowChance, float cellUnitSize)
+    public void Initialize(FloorSizePolicy floorSizePolicy, ElementsGenerationPolicy elementsGenerationPolicy, string prefabsPath, int width, int length, int numberOfFloors, float windowChance, float cellUnitSize)
     {
         this.floorSizePolicy = floorSizePolicy;
+        this.elementsGenerationPolicy = elementsGenerationPolicy;
         this.prefabsPath = prefabsPath;
         this.width = width;
         this.length = length;
@@ -132,13 +142,20 @@ public class Building : MonoBehaviour
                                 }
                             }
                         }
-                        if (UnityEngine.Random.Range(0f, 1f) < windowChance)
+                        if(elementsGenerationPolicy == ElementsGenerationPolicy.Random || floorCount == 0 || floorCount == 1 && floors[0].rooms[i, j].walls[k].walType == Wall.WallType.Door)
                         {
-                            walls[k] = new Wall(Wall.WallType.Window);
+                            if (UnityEngine.Random.Range(0f, 1f) < windowChance)
+                            {
+                                walls[k] = new Wall(Wall.WallType.Window);
+                            }
+                            else
+                            {
+                                walls[k] = new Wall();
+                            }
                         }
-                        else
+                        else if (elementsGenerationPolicy == ElementsGenerationPolicy.Linear)
                         {
-                            walls[k] = new Wall();
+                            walls[k] = new Wall(floors[floorCount - 1].rooms[i, j].walls[k].walType);
                         }
                     }
                     Room.RoofType roofType = Room.RoofType.None;
@@ -238,11 +255,37 @@ public class Building : MonoBehaviour
                                 gameObject = doorPrefabs[UnityEngine.Random.Range(0, doorPrefabs.Length)];
                                 break;
                             case Wall.WallType.Window:
-                                gameObject = windowPrefabs[UnityEngine.Random.Range(0, windowPrefabs.Length)];
-                                break;
+                                {
+                                    int prevIdx = floor.FloorNumber == 0 ? Wall.NONE_INDEX : floors[floor.FloorNumber - 1].rooms[i, j].walls[k].wallIndex;
+                                    if (elementsGenerationPolicy == ElementsGenerationPolicy.Random || prevIdx == Wall.NONE_INDEX)
+                                    {
+                                        int idx = UnityEngine.Random.Range(0, windowPrefabs.Length);
+                                        walls[k].wallIndex = idx;
+                                        gameObject = windowPrefabs[idx];
+                                    }
+                                    else
+                                    {
+                                        walls[k].wallIndex = prevIdx;
+                                        gameObject = windowPrefabs[prevIdx];
+                                    }
+                                    break;
+                                }
                             case Wall.WallType.Normal:
-                                gameObject = wallPrefabs[UnityEngine.Random.Range(0, wallPrefabs.Length)];
-                                break;
+                                {
+                                    int prevIdx = floor.FloorNumber == 0 ? Wall.NONE_INDEX : floors[floor.FloorNumber - 1].rooms[i, j].walls[k].wallIndex;
+                                    if (elementsGenerationPolicy == ElementsGenerationPolicy.Random || prevIdx == Wall.NONE_INDEX)
+                                    {
+                                        int idx = UnityEngine.Random.Range(0, wallPrefabs.Length);
+                                        walls[k].wallIndex = idx;
+                                        gameObject = wallPrefabs[idx];
+                                    }
+                                    else
+                                    {
+                                        walls[k].wallIndex = prevIdx;
+                                        gameObject = wallPrefabs[prevIdx];
+                                    }
+                                    break;
+                                }
                             default:
                                 continue;
                         }
@@ -286,7 +329,10 @@ public class Wall
         Blank
     }
 
+    public const int NONE_INDEX = -1;
+
     public WallType walType;
+    public int wallIndex = NONE_INDEX;
 
     public Wall(WallType walType = WallType.Normal)
     {
