@@ -16,6 +16,7 @@ public class Building : MonoBehaviour
     public enum ElementsGenerationPolicy
     {
         Linear,
+        Changeable,
         Random
     }
 
@@ -23,7 +24,7 @@ public class Building : MonoBehaviour
     private FloorSizePolicy floorSizePolicy = FloorSizePolicy.Constant;
 
     [SerializeField]
-    private ElementsGenerationPolicy elementsGenerationPolicy = ElementsGenerationPolicy.Random;
+    private ElementsGenerationPolicy elementsGenerationPolicy = ElementsGenerationPolicy.Changeable;
 
     [SerializeField]
     private string prefabsPath;
@@ -62,6 +63,10 @@ public class Building : MonoBehaviour
         if(floorSizePolicy == FloorSizePolicy.Random)
         {
             floorSizePolicy = UnityEngine.Random.Range(0f, 1f) < 0.5f ? FloorSizePolicy.Constant : FloorSizePolicy.Decreasing;
+        }
+        if (elementsGenerationPolicy == ElementsGenerationPolicy.Random)
+        {
+            elementsGenerationPolicy = UnityEngine.Random.Range(0f, 1f) < 0.5f ? ElementsGenerationPolicy.Linear : ElementsGenerationPolicy.Changeable;
         }
         int doorWallNumber = UnityEngine.Random.Range(0, length * 2 + width * 2);
         int findDoorCounter = 0;
@@ -142,7 +147,7 @@ public class Building : MonoBehaviour
                                 }
                             }
                         }
-                        if(elementsGenerationPolicy == ElementsGenerationPolicy.Random || floorCount == 0 || floorCount == 1 && floors[0].rooms[i, j].walls[k].walType == Wall.WallType.Door)
+                        if(elementsGenerationPolicy == ElementsGenerationPolicy.Changeable || floorCount == 0 || floorCount == 1 && floors[0].rooms[i, j].walls[k].walType == Wall.WallType.Door)
                         {
                             if (UnityEngine.Random.Range(0f, 1f) < windowChance)
                             {
@@ -257,7 +262,7 @@ public class Building : MonoBehaviour
                             case Wall.WallType.Window:
                                 {
                                     int prevIdx = floor.FloorNumber == 0 ? Wall.NONE_INDEX : floors[floor.FloorNumber - 1].rooms[i, j].walls[k].wallIndex;
-                                    if (elementsGenerationPolicy == ElementsGenerationPolicy.Random || prevIdx == Wall.NONE_INDEX)
+                                    if (elementsGenerationPolicy == ElementsGenerationPolicy.Changeable || prevIdx == Wall.NONE_INDEX)
                                     {
                                         int idx = UnityEngine.Random.Range(0, windowPrefabs.Length);
                                         walls[k].wallIndex = idx;
@@ -273,7 +278,7 @@ public class Building : MonoBehaviour
                             case Wall.WallType.Normal:
                                 {
                                     int prevIdx = floor.FloorNumber == 0 ? Wall.NONE_INDEX : floors[floor.FloorNumber - 1].rooms[i, j].walls[k].wallIndex;
-                                    if (elementsGenerationPolicy == ElementsGenerationPolicy.Random || prevIdx == Wall.NONE_INDEX)
+                                    if (elementsGenerationPolicy == ElementsGenerationPolicy.Changeable || prevIdx == Wall.NONE_INDEX)
                                     {
                                         int idx = UnityEngine.Random.Range(0, wallPrefabs.Length);
                                         walls[k].wallIndex = idx;

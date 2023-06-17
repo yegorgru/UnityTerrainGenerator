@@ -18,6 +18,7 @@ MonoBehaviour:
   maxNumberOfFloors: 5
   sidewalkColor: {r: 0.12322002, g: 0.6698113, b: 0.14198704, a: 1}
   floorSizePolicy: 2
+  elementsGenerationPolicy: 2
   startRoadItemsNumber: 1
   pathToRoads: Assets\Prefabs\Roads
   pathsToBuildings:

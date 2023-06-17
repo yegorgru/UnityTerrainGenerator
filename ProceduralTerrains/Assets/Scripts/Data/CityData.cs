@@ -16,7 +16,7 @@ public class CityData : ScriptableObject
 
     public Building.FloorSizePolicy floorSizePolicy = Building.FloorSizePolicy.Random;
 
-    public Building.ElementsGenerationPolicy elementsGenerationPolicy = Building.ElementsGenerationPolicy.Random;
+    public Building.ElementsGenerationPolicy elementsGenerationPolicy = Building.ElementsGenerationPolicy.Changeable;
 
     public int startRoadItemsNumber = 1;
 
